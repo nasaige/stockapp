@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   const { symbol, type } = req.query;
-  const API_KEY = v9TuvhgAWyILDWb26E2GpbBQPLDFmd8k'你的新Key';  // ← 换成你重新生成的Key
+  const API_KEY = LHJ3GFM8QIKDI3RD'你的新Key';  // ← 换成你重新生成的Key
 
   if (type === 'fx') {
     const pairs = [
