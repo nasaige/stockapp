@@ -15,52 +15,51 @@
   --shadow: 0 1px 3px rgba(0,0,0,0.08); --mono: 'DM Mono',monospace; --sans: 'Noto Sans SC',sans-serif;
 }
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-body { background:var(--bg); color:var(--text); font-family:var(--sans); line-height: 1.5; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); }
 
-/* 响应式布局：PC端双列，手机端单列 */
+/* 响应式布局 */
 .app { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 60px 1fr; min-height: 100vh; }
 @media (max-width: 900px) { .app { grid-template-columns: 1fr; grid-template-rows: 60px auto 1fr; } }
 
-/* TOPBAR */
+/* 导航栏 */
 .topbar { grid-column: 1/-1; background: var(--white); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; box-shadow: var(--shadow); }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand-logo { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; }
 
-/* SIDEBAR & WATCHLIST */
+/* 侧边栏/股票切换 */
 .sidebar { background: var(--white); border-right: 1px solid var(--border); padding: 15px; overflow-y: auto; }
-@media (max-width: 900px) { .sidebar { border-right: none; border-bottom: 1px solid var(--border); padding: 10px; max-height: 120px; display: flex; flex-direction: row; align-items: center; gap: 10px; overflow-x: auto; } }
+@media (max-width: 900px) { 
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); padding: 10px; display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; } 
+}
 
-.stock-item { padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; margin-bottom: 5px; min-width: 140px; }
+.stock-item { padding: 12px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; margin-bottom: 5px; flex-shrink: 0; }
 .stock-item.active { background: var(--accent-bg); border-color: #bae6fd; }
-.si-name { font-size: 13px; font-weight: 700; }
-.si-price { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+.si-name { font-size: 14px; font-weight: 700; }
+.si-sym { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
-/* MAIN CONTENT */
+/* 内容区 */
 .main { padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
 .card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); }
 
-/* HERO AREA */
-.hero-name { font-size: 24px; font-weight: 700; margin-bottom: 2px; }
-.hero-price { font-family: var(--mono); font-size: 44px; font-weight: 600; margin: 8px 0; letter-spacing: -1px; }
-.hero-chg { font-family: var(--mono); font-size: 16px; font-weight: 600; padding: 4px 10px; border-radius: 6px; display: inline-block; }
+/* 价格展示 */
+.hero-price { font-family: var(--mono); font-size: 40px; font-weight: 600; margin: 5px 0; letter-spacing: -1px; }
+.hero-chg { font-family: var(--mono); font-size: 15px; font-weight: 600; padding: 4px 10px; border-radius: 6px; display: inline-block; }
 
-/* GRID STATS */
+/* 数据网格 */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 @media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
 .stat-box { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-.stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 500; }
+.stat-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
 .stat-val { font-family: var(--mono); font-size: 16px; font-weight: 600; }
 
 .up { color: var(--up); } .dn { color: var(--down); }
 .up-bg { background: var(--up-bg); color: var(--up); border: 1px solid var(--up-b); }
 .dn-bg { background: var(--down-bg); color: var(--down); border: 1px solid var(--down-b); }
 
-/* CHART */
-#chartWrapper { position: relative; height: 300px; width: 100%; margin-top: 15px; }
+#chartWrapper { position: relative; height: 260px; width: 100%; margin-top: 10px; }
 
-/* LOADING & ERR */
-.loading-box { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px; color: var(--muted); }
-.spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 10px; }
+.loading-state { display: flex; align-items: center; justify-content: center; height: 200px; color: var(--muted); flex-direction: column; gap: 10px; }
+.spinner { width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
@@ -68,105 +67,85 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); line-he
 
 <div class="app">
   <header class="topbar">
-    <div class="brand">
-      <div class="brand-logo">S</div>
-      <div><strong>StockView</strong><br><small id="market-status" style="color:var(--muted); font-size:10px">正在获取连接...</small></div>
-    </div>
-    <div id="clock" style="font-family: var(--mono); font-weight: 600; font-size: 14px;">00:00:00</div>
+    <div class="brand"><div class="brand-logo">S</div><strong>StockView</strong></div>
+    <div id="clock" style="font-family: var(--mono); font-size: 14px; color: var(--text2);">00:00:00</div>
   </header>
 
   <aside class="sidebar" id="watchlist"></aside>
 
-  <main class="main" id="main-content">
+  <main class="main">
     <div class="card" id="hero-card">
-      <div class="loading-box"><div class="spinner"></div>正在加载实时行情...</div>
+      <div class="loading-state"><div class="spinner"></div>正在获取实时数据...</div>
     </div>
 
     <div class="stats-grid">
       <div class="stat-box"><div class="stat-label">今日最高</div><div class="stat-val up" id="s-high">--</div></div>
       <div class="stat-box"><div class="stat-label">今日最低</div><div class="stat-val dn" id="s-low">--</div></div>
-      <div class="stat-box"><div class="stat-label">昨收</div><div class="stat-val" id="s-prev">--</div></div>
       <div class="stat-box"><div class="stat-label">成交量(万)</div><div class="stat-val" id="s-vol">--</div></div>
+      <div class="stat-box"><div class="stat-label">昨收盘</div><div class="stat-val" id="s-prev">--</div></div>
     </div>
 
     <div class="card">
-      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:10px;">趋势图表 (3个月)</div>
+      <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:10px;">近三个月趋势图</div>
       <div id="chartWrapper"><canvas id="mainChart"></canvas></div>
     </div>
   </main>
 </div>
 
 <script>
-const CONFIG = {
-  stocks: {
-    '000660.KS': 'SK 海力士',
-    '005930.KS': '三星电子',
-    'AAPL': '苹果公司'
-  },
-  refreshInterval: 60000 // 1分钟刷新一次
+// 对应你的 API 能够查询的股票
+const STOCKS = {
+  '000660.KS': 'SK 海力士',
+  '005930.KS': '三星电子',
+  'AAPL': '苹果公司'
 };
 
-let currentSym = '000660.KS';
-let mainChart = null;
+let activeSym = '000660.KS';
+let myChart = null;
 
-// 格式化数字，防止 NaN
-const fmt = (val, prefix = '₩') => {
-  if (val === undefined || val === null || isNaN(val)) return '--';
-  return prefix + Number(val).toLocaleString();
-};
+// 自动格式化函数
+const num = (v) => (v !== undefined && v !== null) ? v.toLocaleString() : '--';
 
-async function fetchData(symbol) {
+async function updateData(symbol) {
+  activeSym = symbol;
+  renderSidebar();
+  
   try {
     const res = await fetch(`/api/stock?symbol=${symbol}`);
-    if (!res.ok) throw new Error('API Error');
     const data = await res.json();
-    document.getElementById('market-status').innerText = '实时连接正常';
-    document.getElementById('market-status').style.color = 'var(--up)';
-    return data;
+    if(data.error) throw new Error(data.error);
+
+    const isUp = data.price >= data.prevClose;
+    const diff = data.price - data.prevClose;
+    const pct = ((diff / data.prevClose) * 100).toFixed(2);
+
+    // 更新主卡片 (完全对应你新 API 的字段: price, symbol, currency)
+    document.getElementById('hero-card').innerHTML = `
+      <div class="si-name" style="font-size:20px">${STOCKS[symbol] || symbol}</div>
+      <div class="si-sym">${data.symbol} · ${data.currency}</div>
+      <div class="hero-price">₩${num(data.price)}</div>
+      <div class="hero-chg ${isUp ? 'up-bg' : 'dn-bg'}">
+        ${isUp ? '▲' : '▼'} ${isUp ? '+' : ''}${num(diff)} (${pct}%)
+      </div>
+    `;
+
+    // 更新统计栏 (对应你新 API 的字段: high, low, volume, prevClose)
+    document.getElementById('s-high').innerText = '₩' + num(data.high);
+    document.getElementById('s-low').innerText = '₩' + num(data.low);
+    document.getElementById('s-vol').innerText = num(data.volume);
+    document.getElementById('s-prev').innerText = '₩' + num(data.prevClose);
+
+    renderChart(data.candles);
   } catch (e) {
-    document.getElementById('market-status').innerText = '连接失败，重试中...';
-    document.getElementById('market-status').style.color = 'var(--down)';
-    return null;
+    document.getElementById('hero-card').innerHTML = `<div class="loading-state" style="color:var(--down)">数据加载失败，请检查网络或API部署</div>`;
   }
-}
-
-async function updatePage(symbol) {
-  currentSym = symbol;
-  renderWatchlist();
-  
-  const data = await fetchData(symbol);
-  if (!data) return;
-
-  // 计算涨跌幅
-  const diff = data.price - data.prevClose;
-  const pct = ((diff / data.prevClose) * 100).toFixed(2);
-  const isUp = diff >= 0;
-
-  // 更新 Hero 卡片
-  const hero = document.getElementById('hero-card');
-  hero.innerHTML = `
-    <div class="hero-name">${CONFIG.stocks[symbol] || symbol}</div>
-    <div style="font-family: var(--mono); color: var(--muted); font-size: 12px;">${data.symbol} · ${data.currency}</div>
-    <div class="hero-price">${fmt(data.price, '₩')}</div>
-    <div class="hero-chg ${isUp ? 'up-bg' : 'dn-bg'}">
-      ${isUp ? '▲' : '▼'} ${isUp ? '+' : ''}${diff.toLocaleString()} (${pct}%)
-    </div>
-  `;
-
-  // 更新小方块
-  document.getElementById('s-high').innerText = fmt(data.high, '₩');
-  document.getElementById('s-low').innerText = fmt(data.low, '₩');
-  document.getElementById('s-prev').innerText = fmt(data.prevClose, '₩');
-  document.getElementById('s-vol').innerText = data.volume + '万';
-
-  renderChart(data.candles);
 }
 
 function renderChart(candles) {
   const ctx = document.getElementById('mainChart').getContext('2d');
-  if (mainChart) mainChart.destroy();
+  if (myChart) myChart.destroy();
 
-  mainChart = new Chart(ctx, {
+  myChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: candles.map(c => c.t),
@@ -176,16 +155,8 @@ function renderChart(candles) {
         borderWidth: 2,
         pointRadius: 0,
         fill: true,
-        backgroundColor: (context) => {
-          const chart = context.chart;
-          const {ctx, chartArea} = chart;
-          if (!chartArea) return null;
-          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, 'rgba(14, 165, 233, 0.2)');
-          gradient.addColorStop(1, 'rgba(14, 165, 233, 0)');
-          return gradient;
-        },
-        tension: 0.2
+        backgroundColor: 'rgba(14, 165, 233, 0.05)',
+        tension: 0.1
       }]
     },
     options: {
@@ -193,30 +164,29 @@ function renderChart(candles) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { display: true, grid: { display: false }, ticks: { maxTicksLimit: 6, font: { size: 10 } } },
-        y: { position: 'right', grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } }
+        x: { ticks: { maxTicksLimit: 6, font: { size: 10 } }, grid: { display: false } },
+        y: { position: 'right', ticks: { font: { size: 10 } }, grid: { color: '#f1f5f9' } }
       }
     }
   });
 }
 
-function renderWatchlist() {
+function renderSidebar() {
   const el = document.getElementById('watchlist');
-  el.innerHTML = Object.keys(CONFIG.stocks).map(s => `
-    <div class="stock-item ${s === currentSym ? 'active' : ''}" onclick="updatePage('${s}')">
-      <div class="si-name">${CONFIG.stocks[s]}</div>
-      <div class="si-price">${s}</div>
+  el.innerHTML = Object.keys(STOCKS).map(s => `
+    <div class="stock-item ${s === activeSym ? 'active' : ''}" onclick="updateData('${s}')">
+      <div class="si-name">${STOCKS[s]}</div>
+      <div class="si-sym">${s}</div>
     </div>
   `).join('');
 }
 
-// 启动逻辑
-setInterval(() => { 
-  document.getElementById('clock').innerText = new Date().toLocaleTimeString('zh-CN', {hour12: false}); 
-}, 1000);
+// 初始化
+setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('zh-CN', {hour12:false}); }, 1000);
+updateData(activeSym);
 
-updatePage(currentSym);
-setInterval(() => updatePage(currentSym), CONFIG.refreshInterval);
+// 每分钟自动刷新一次
+setInterval(() => updateData(activeSym), 60000);
 </script>
 
 </body>
