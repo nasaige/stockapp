@@ -3,18 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的股票看板</title>
+    <title>实时股票监控看板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background: #1a1a1b; color: #fff; font-family: sans-serif; text-align: center; padding-top: 50px; }
-        .box { border: 2px solid #00ff88; display: inline-block; padding: 20px; border-radius: 15px; }
-        h1 { color: #00ff88; }
+        :root { --bg: #0d1117; --card: #161b22; --green: #00ff88; --text: #c9d1d9; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 15px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
+        .time { font-family: monospace; color: var(--green); }
+        .card { background: var(--card); border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .stock-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+        .name { font-size: 20px; font-weight: bold; }
+        .price { font-size: 24px; color: var(--green); font-weight: bold; }
+        canvas { width: 100% !important; height: 160px !important; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h1>🚀 股票看板已上线</h1>
-        <p>数据接口正在连接中...</p>
-        <p>当前状态：部署成功</p>
+    <div class="header">
+        <div class="name">实时监控看板</div>
+        <div id="clock" class="time">00:00:00</div>
     </div>
+    <div id="container"></div>
+
+    <script>
+        // 更新时钟
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+
+        const STOCKS = [
+            { id: '000660.KS', name: 'SK海力士' },
+            { id: '005930.KS', name: '三星电子' }
+        ];
+
+        async function loadStock(stock) {
+            try {
+                // 这里的路径必须和你的 api/stock.js 对应
+                const res = await fetch(`/api/stock?symbol=${stock.id}`);
+                const data = await res.json();
+                
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <div class="stock-info">
+                        <div><small style="color:#8b949e">${stock.id}</small><br>${stock.name}</div>
+                        <div class="price">₩${data.price.toLocaleString()}</div>
+                    </div>
+                    <canvas id="chart-${stock.id.replace('.','-')}"></canvas>
+                `;
+                document.getElementById('container').appendChild(div);
+
+                new Chart(document.getElementById(`chart-${stock.id.replace('.','-')}`), {
+                    type: 'line',
+                    data: {
+                        labels: data.candles.map(c => c.t),
+                        datasets: [{
+                            data: data.candles.map(c => c.c),
+                            borderColor: '#00ff88',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: true,
+                            backgroundColor: 'rgba(0, 255, 136, 0.1)'
+                        }]
+                    },
+                    options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#30363d' } } } }
+                });
+            } catch (e) { console.log('数据加载失败', e); }
+        }
+        STOCKS.forEach(loadStock);
+    </script>
 </body>
 </html>
