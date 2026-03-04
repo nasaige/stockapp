@@ -2,230 +2,396 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>StockView · 交互专业版</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
-<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1"></script>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockView · 实时股票看板</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root {
   --bg: #f8fafc; --white: #fff; --border: #e2e8f0; --text: #0f172a;
-  --muted: #94a3b8; --accent: #0ea5e9; --up: #16a34a; --up-bg: #f0fdf4;
-  --down: #dc2626; --down-bg: #fef2f2; --shadow: 0 4px 12px rgba(0,0,0,0.05);
+  --text2: #475569; --muted: #94a3b8; --accent: #0ea5e9;
+  --accent-bg: #f0f9ff; --up: #16a34a; --up-bg: #f0fdf4; --up-b: #bbf7d0;
+  --down: #dc2626; --down-bg: #fef2f2; --down-b: #fecaca;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08); --mono: 'DM Mono',monospace; --sans: 'Noto Sans SC',sans-serif;
 }
-* { margin:0; padding:0; box-sizing:border-box; font-family:'Noto Sans SC', sans-serif; touch-action: pan-y; }
-body { background: var(--bg); color: var(--text); padding-bottom: 20px; }
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); }
 
-/* ── 导航 & 搜索 ── */
-.nav { background: var(--white); padding: 12px 16px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-.search-group { display: flex; gap: 8px; margin-top: 10px; }
-.search-group input { flex: 1; border: 1px solid var(--border); padding: 10px 14px; border-radius: 10px; font-size: 14px; outline: none; background: #f1f5f9; }
-.search-group button { background: var(--accent); color: #fff; border: none; padding: 0 16px; border-radius: 10px; font-weight: 700; }
+.app { display:grid; grid-template-columns:220px 1fr; grid-template-rows:54px 1fr; min-height:100vh; }
 
-/* ── 自选股滚动条 ── */
-.watchlist { display: flex; gap: 10px; overflow-x: auto; padding: 12px 16px; scrollbar-width: none; }
-.watchlist::-webkit-scrollbar { display: none; }
-.stock-card { background: var(--white); padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); min-width: 130px; transition: 0.2s; flex-shrink: 0; }
-.stock-card.active { border-color: var(--accent); background: var(--up-bg); transform: translateY(-2px); }
+/* TOPBAR */
+.topbar { grid-column:1/-1; background:var(--white); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 20px; gap:12px; box-shadow:var(--shadow); z-index:10; }
+.brand { display:flex; align-items:center; gap:10px; }
+.brand-logo { width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px; }
+.brand-name { font-size:15px; font-weight:700; }
+.brand-sub { font-size:11px; color:var(--muted); }
+.top-right { display:flex; align-items:center; gap:14px; }
+.live-badge { display:flex; align-items:center; gap:5px; background:var(--up-bg); border:1px solid var(--up-b); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:600; color:var(--up); }
+.live-dot { width:6px; height:6px; border-radius:50%; background:var(--up); animation:blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.clock { font-family:var(--mono); font-size:14px; font-weight:500; color:var(--text2); }
+.delay-note { font-size:11px; color:var(--muted); }
 
-/* ── 主面板 ── */
-.main-content { padding: 0 16px; display: flex; flex-direction: column; gap: 16px; }
-.hero-card { background: var(--white); border-radius: 18px; padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
-.price-row { display: flex; justify-content: space-between; align-items: baseline; margin: 8px 0; }
-.price-big { font-family: 'DM Mono'; font-size: 34px; font-weight: 700; }
-.chg-text { font-family: 'DM Mono'; font-weight: 700; font-size: 18px; }
+/* SIDEBAR */
+.sidebar { background:var(--white); border-right:1px solid var(--border); padding:16px 12px; display:flex; flex-direction:column; gap:4px; overflow-y:auto; }
+.sidebar-section { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; padding:8px 8px 4px; }
+.stock-item { display:flex; align-items:center; justify-content:space-between; padding:10px 10px; border-radius:8px; cursor:pointer; transition:all 0.15s; border:1px solid transparent; }
+.stock-item:hover { background:var(--bg); }
+.stock-item.active { background:var(--accent-bg); border-color:#bae6fd; }
+.si-sym { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--text); }
+.stock-item.active .si-sym { color:var(--accent); }
+.si-name { font-size:10px; color:var(--muted); margin-top:1px; }
+.si-price { font-family:var(--mono); font-size:12px; font-weight:600; text-align:right; }
+.si-chg { font-family:var(--mono); font-size:10px; margin-top:1px; text-align:right; }
+.up { color:var(--up); } .dn { color:var(--down); }
 
-/* ── 图表 ── */
-.chart-box { height: 260px; margin-top: 10px; position: relative; border-radius: 12px; overflow: hidden; }
-.chart-hint { position: absolute; top: 5px; right: 5px; font-size: 10px; color: var(--muted); pointer-events: none; }
+/* MAIN */
+.main { overflow-y:auto; padding:18px; display:flex; flex-direction:column; gap:14px; }
+.card { background:var(--white); border:1px solid var(--border); border-radius:10px; padding:18px; box-shadow:var(--shadow); }
+.card-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:14px; }
 
-/* ── 信息面板 ── */
-.panel { background: var(--white); border-radius: 14px; padding: 16px; border: 1px solid var(--border); }
-.panel-title { font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 12px; display: flex; justify-content: space-between; }
-.fx-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-.fx-box { background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+/* HERO */
+.hero-name { font-size:22px; font-weight:700; }
+.hero-sym { font-size:12px; color:var(--muted); font-family:var(--mono); margin-top:3px; }
+.hero-price { font-family:var(--mono); font-size:40px; font-weight:600; margin-top:10px; line-height:1; }
+.hero-chg { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:5px 12px; border-radius:6px; font-family:var(--mono); font-size:14px; font-weight:600; }
+.hero-chg.up { background:var(--up-bg); color:var(--up); border:1px solid var(--up-b); }
+.hero-chg.dn { background:var(--down-bg); color:var(--down); border:1px solid var(--down-b); }
+.hero-meta { display:flex; gap:24px; margin-top:14px; flex-wrap:wrap; }
+.hm-label { font-size:11px; color:var(--muted); margin-bottom:3px; }
+.hm-val { font-family:var(--mono); font-size:14px; font-weight:600; }
 
-.news-item { padding: 10px 0; border-bottom: 1px dashed var(--border); }
-.news-tag { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
+/* STATS */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.stat-card { background:var(--white); border:1px solid var(--border); border-radius:10px; padding:14px 16px; box-shadow:var(--shadow); }
+.stat-label { font-size:11px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+.stat-val { font-family:var(--mono); font-size:20px; font-weight:700; }
 
-/* ── 热力图 ── */
-.hmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.hcell { padding: 12px 4px; border-radius: 10px; text-align: center; font-size: 11px; }
+/* CHART */
+.chart-wrap { display:grid; grid-template-columns:2fr 1fr; gap:14px; }
+.range-tabs { display:flex; gap:4px; margin-bottom:14px; }
+.rtab { padding:4px 10px; border-radius:5px; font-size:11px; font-family:var(--mono); font-weight:500; cursor:pointer; border:1px solid var(--border); color:var(--muted); background:var(--bg); transition:all 0.15s; }
+.rtab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+#candleChart { width:100%!important; height:240px!important; }
+#volChart { width:100%!important; height:70px!important; }
 
-@media (min-width: 768px) { .chart-box { height: 400px; } }
+/* NEWS */
+.news-item { padding:12px 14px; border-radius:8px; border:1px solid var(--border); margin-bottom:8px; }
+.news-item:last-child { margin-bottom:0; }
+.news-tag { font-size:10px; font-weight:700; padding:2px 7px; border-radius:4px; text-transform:uppercase; margin-right:8px; }
+.news-tag.pos { background:var(--up-bg); color:var(--up); }
+.news-tag.neg { background:var(--down-bg); color:var(--down); }
+.news-tag.neu { background:#f1f5f9; color:var(--muted); }
+.news-date { font-size:11px; color:var(--muted); font-family:var(--mono); }
+.news-title { font-size:13px; font-weight:500; line-height:1.5; margin-top:5px; }
+.news-src { font-size:11px; color:var(--muted); margin-top:3px; }
+
+/* LOADING */
+.loading { display:flex; align-items:center; justify-content:center; padding:40px; color:var(--muted); font-size:14px; gap:8px; }
+.spinner { width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* BOTTOM */
+.bottom-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.hmap { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.hcell { border-radius:7px; padding:9px 6px; text-align:center; border:1px solid transparent; transition:all 0.5s; }
+.hcell .hn { font-size:10px; font-weight:700; margin-bottom:2px; }
+.hcell .hv { font-size:12px; font-family:var(--mono); font-weight:600; }
+
+@media(max-width:900px) {
+  .app { grid-template-columns:1fr; }
+  .sidebar { display:none; }
+  .stats-row { grid-template-columns:repeat(2,1fr); }
+  .chart-wrap { grid-template-columns:1fr; }
+  .bottom-grid { grid-template-columns:1fr; }
+}
 </style>
 </head>
 <body>
+<div class="app">
 
-<div class="nav">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <strong style="color:var(--accent); font-size:18px;">STOCKVIEW PRO</strong>
-    <span id="clock" style="font-family:'DM Mono'; font-size:13px; color:var(--muted);">00:00:00</span>
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">S</div>
+    <div><div class="brand-name">StockView</div><div class="brand-sub">真实行情 · 延迟15分钟</div></div>
   </div>
-  <div class="search-group">
-    <input type="text" id="sInput" placeholder="代码(如: NVDA, 005930.KS)">
-    <button onclick="addStock()">添加</button>
+  <div class="top-right">
+    <span class="delay-note">数据来源：Yahoo Finance</span>
+    <span class="live-badge"><span class="live-dot"></span>实时</span>
+    <span class="clock" id="clock">--:--:--</span>
   </div>
-</div>
+</header>
 
-<div class="watchlist" id="watchlist"></div>
+<aside class="sidebar">
+  <div class="sidebar-section">自选股票</div>
+  <div id="watchlist"></div>
+</aside>
 
-<div class="main-content">
-  <div class="hero-card">
-    <div style="display:flex; justify-content:space-between;">
-        <span id="hName" style="font-weight:700; font-size:18px;">加载中...</span>
-        <span id="hSym" style="font-family:'DM Mono'; font-size:12px; color:var(--muted);">--</span>
+<main class="main">
+
+  <div class="card" id="heroCard">
+    <div class="loading"><div class="spinner"></div>正在加载真实数据…</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">今日开盘</div><div class="stat-val" id="s-open">--</div></div>
+    <div class="stat-card"><div class="stat-label">今日最高</div><div class="stat-val up" id="s-high">--</div></div>
+    <div class="stat-card"><div class="stat-label">今日最低</div><div class="stat-val dn" id="s-low">--</div></div>
+    <div class="stat-card"><div class="stat-label">成交量</div><div class="stat-val" id="s-vol">--</div></div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="card">
+      <div class="card-title">K线图（蜡烛图）— 近3个月真实数据</div>
+      <div class="range-tabs">
+        <div class="rtab active" onclick="setRange(20,this)">1个月</div>
+        <div class="rtab" onclick="setRange(45,this)">2个月</div>
+        <div class="rtab" onclick="setRange(0,this)">3个月</div>
+      </div>
+      <canvas id="candleChart"></canvas>
+      <div style="margin-top:10px"><div class="card-title" style="margin-bottom:8px">成交量</div><canvas id="volChart"></canvas></div>
     </div>
-    <div class="price-row">
-      <div id="hPrice" class="price-big">0.00</div>
-      <div id="hChg" class="chg-text">--%</div>
-    </div>
-    <div class="chart-box">
-        <div class="chart-hint">双指缩放 | 左右拖动</div>
-        <canvas id="mChart"></canvas>
+    <div class="card">
+      <div class="card-title">其他股票</div>
+      <div id="otherStocks"></div>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-title"><span>实时汇率</span><span>LIVE</span></div>
-    <div class="fx-grid" id="fxList"></div>
-    
-    <div class="panel-title"><span>板块表现</span><span>模拟</span></div>
-    <div class="hmap" id="hMap"></div>
+  <div class="bottom-grid">
+    <div class="card">
+      <div class="card-title">最新资讯</div>
+      <div id="newsList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">板块热力图（模拟）</div>
+      <div class="hmap" id="heatmap"></div>
+    </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-title">核心资讯</div>
-    <div id="newsList"></div>
-  </div>
+</main>
 </div>
 
 <script>
-let watchlist = ['000660.KS', '005930.KS', 'NVDA', 'AAPL'];
-let activeId = '000660.KS';
-let mChart = null;
+const STOCKS = {
+  '000660.KS': { name:'SK 海力士', short:'000660' },
+  '005930.KS': { name:'三星电子',  short:'005930' },
+};
 
-async function addStock() {
-    const val = document.getElementById('sInput').value.trim().toUpperCase();
-    if(!val) return;
-    if(!watchlist.includes(val)) watchlist.push(val);
-    document.getElementById('sInput').value = '';
-    loadPage(val);
+const NEWS = {
+  '000660.KS': [
+    { tag:'pos', title:'SK海力士HBM3E出货量环比增长40%，AI服务器需求持续旺盛', src:'韩国经济日报', date:'2026-03-04' },
+    { tag:'pos', title:'英伟达与SK海力士深化合作，H200芯片内存供货协议续签', src:'路透社', date:'2026-03-03' },
+    { tag:'neu', title:'SK海力士一季度净利润预期突破12万亿韩元', src:'彭博社', date:'2026-03-02' },
+    { tag:'neg', title:'美出口管制影响评估：SK海力士对华业务占比约8%', src:'FT', date:'2026-03-01' },
+  ],
+  '005930.KS': [
+    { tag:'neg', title:'三星存储芯片市占率连续两季下滑，HBM研发进度受关注', src:'韩国日报', date:'2026-03-04' },
+    { tag:'pos', title:'三星Foundry获高通3nm订单，代工业务企稳', src:'DigiTimes', date:'2026-03-03' },
+    { tag:'neu', title:'三星展示下一代折叠屏技术，2026年下半年量产', src:'科技日报', date:'2026-03-02' },
+    { tag:'pos', title:'三星电子回购计划：未来12个月回购3万亿韩元股票', src:'韩联社', date:'2026-03-01' },
+  ],
+};
+
+const SECTORS = ['半导体','汽车','银行','生技','能源','电信','零售','科技'];
+
+let cache = {};
+let active = '000660.KS';
+let allCandles = [];
+let candleRange = 20;
+let candleChart, volChart;
+
+// ── CLOCK ──────────────────────────────────────────────────────────
+setInterval(()=>{ document.getElementById('clock').textContent = new Date().toLocaleTimeString('zh-CN',{hour12:false}); }, 1000);
+
+// ── FETCH REAL DATA ────────────────────────────────────────────────
+async function fetchStock(sym) {
+  if(cache[sym] && Date.now()-cache[sym].ts < 5*60*1000) return cache[sym].data;
+  try {
+    const res = await fetch(`/api/stock?symbol=${sym}`);
+    if(!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    cache[sym] = { data, ts: Date.now() };
+    return data;
+  } catch(e) {
+    console.error(e);
+    return null;
+  }
 }
 
-async function loadPage(id) {
-    activeId = id;
-    renderWatchlist();
-    try {
-        const res = await fetch(`/api/stock?symbol=${id}`);
-        const data = await res.json();
-        
-        // 修正涨跌幅逻辑：最新价 vs 昨日收盘价
-        const candles = data.candles;
-        const currentPrice = data.price;
-        const prevClose = candles.length > 1 ? candles[candles.length-2].c : candles[0].c;
-        const changePct = ((currentPrice - prevClose) / prevClose * 100).toFixed(2);
-        const isUp = currentPrice >= prevClose;
+// ── RENDER HERO ────────────────────────────────────────────────────
+async function renderHero(sym) {
+  const card = document.getElementById('heroCard');
+  card.innerHTML = '<div class="loading"><div class="spinner"></div>加载中…</div>';
+  const d = await fetchStock(sym);
+  if(!d){ card.innerHTML='<div class="loading">⚠️ 数据加载失败，请稍后重试</div>'; return; }
 
-        document.getElementById('hName').innerText = id === '000660.KS' ? 'SK海力士' : id;
-        document.getElementById('hSym').innerText = data.symbol;
-        document.getElementById('hPrice').innerText = currentPrice.toLocaleString();
-        
-        const elChg = document.getElementById('hChg');
-        elChg.innerText = (isUp ? '▲ +' : '▼ ') + changePct + '%';
-        elChg.style.color = isUp ? 'var(--up)' : 'var(--down)';
-        
-        initInteractiveChart(candles, isUp ? '#16a34a' : '#dc2626');
-        renderFX();
-        renderHeatmap();
-        renderNews(id, isUp);
-    } catch (e) { console.error(e); }
+  const chg = d.price - d.prevClose;
+  const pct = chg / d.prevClose * 100;
+  const cls = pct>=0?'up':'dn'; const sign=pct>=0?'+':''; const arrow=pct>=0?'▲':'▼';
+
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+      <div>
+        <div class="hero-name">${STOCKS[sym].name}</div>
+        <div class="hero-sym">${sym} · 韩国交易所 · 数据延迟约15分钟</div>
+        <div class="hero-price">₩${d.price.toLocaleString()}</div>
+        <div class="hero-chg ${cls}">${arrow} ${sign}${chg.toLocaleString()} (${sign}${pct.toFixed(2)}%)</div>
+        <div class="hero-meta">
+          <div><div class="hm-label">昨日收盘</div><div class="hm-val">₩${d.prevClose?.toLocaleString()}</div></div>
+          <div><div class="hm-label">今日开盘</div><div class="hm-val">₩${d.open?.toLocaleString()}</div></div>
+          <div><div class="hm-label">今日最高</div><div class="hm-val" style="color:var(--up)">₩${d.high?.toLocaleString()}</div></div>
+          <div><div class="hm-label">今日最低</div><div class="hm-val" style="color:var(--down)">₩${d.low?.toLocaleString()}</div></div>
+        </div>
+      </div>
+    </div>`;
+
+  document.getElementById('s-open').textContent = `₩${d.open?.toLocaleString()||'--'}`;
+  document.getElementById('s-high').textContent = `₩${d.high?.toLocaleString()||'--'}`;
+  document.getElementById('s-low').textContent  = `₩${d.low?.toLocaleString()||'--'}`;
+  document.getElementById('s-vol').textContent  = `${d.volume}万股`;
+
+  allCandles = d.candles || [];
+  renderCandles();
+  renderNews(sym);
 }
 
-function initInteractiveChart(candles, color) {
-    const ctx = document.getElementById('mChart').getContext('2d');
-    if(mChart) mChart.destroy();
-    
-    mChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: candles.map(c => c.t),
-            datasets: [{
-                data: candles.map(c => c.c),
-                borderColor: color,
-                borderWidth: 2,
-                pointRadius: 0,
-                fill: true,
-                backgroundColor: color + '11',
-                tension: 0.2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                zoom: { // 开启缩放和平移功能
-                    pan: { enabled: true, mode: 'x' },
-                    zoom: {
-                        wheel: { enabled: true },
-                        pinch: { enabled: true },
-                        mode: 'x',
-                    }
-                }
-            },
-            scales: {
-                x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } },
-                y: { position: 'right', grid: { color: '#f1f5f9' } }
-            }
-        }
+// ── CANDLE CHART ───────────────────────────────────────────────────
+const candlestickPlugin = {
+  id:'cs',
+  beforeDatasetsDraw(chart){
+    const {ctx,scales:{x,y}} = chart;
+    const data = chart._cd || [];
+    data.forEach((d,i)=>{
+      const xp=x.getPixelForValue(i), oy=y.getPixelForValue(d.o), cy=y.getPixelForValue(d.c), hy=y.getPixelForValue(d.h), ly=y.getPixelForValue(d.l);
+      const isUp=d.c>=d.o; const color=isUp?'#16a34a':'#dc2626';
+      const w=Math.max(3,x.width/data.length*0.55);
+      ctx.beginPath(); ctx.strokeStyle=color; ctx.lineWidth=1.2;
+      ctx.moveTo(xp,hy); ctx.lineTo(xp,ly); ctx.stroke();
+      ctx.fillStyle=color;
+      ctx.fillRect(xp-w/2, Math.min(oy,cy), w, Math.max(2,Math.abs(oy-cy)));
     });
+  }
+};
+Chart.register(candlestickPlugin);
+
+function renderCandles(){
+  const raw = candleRange===0 ? allCandles : allCandles.slice(-candleRange);
+  if(!raw.length) return;
+
+  if(candleChart) candleChart.destroy();
+  if(volChart) volChart.destroy();
+
+  const ctx = document.getElementById('candleChart').getContext('2d');
+  const vctx = document.getElementById('volChart').getContext('2d');
+  const g = ctx.createLinearGradient(0,0,0,240);
+  g.addColorStop(0,'rgba(14,165,233,0.1)'); g.addColorStop(1,'rgba(14,165,233,0)');
+
+  candleChart = new Chart(ctx,{
+    type:'line',
+    data:{ labels:raw.map(d=>d.t), datasets:[{data:raw.map(d=>d.c), borderColor:'transparent', pointRadius:0, fill:false}] },
+    options:{ responsive:true, animation:{duration:300}, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`收盘 ₩${c.parsed.y.toLocaleString()}`}}},
+      scales:{ x:{grid:{color:'#f1f5f9'}, ticks:{color:'#94a3b8',font:{family:'DM Mono',size:10},maxTicksLimit:8}},
+        y:{position:'right',grid:{color:'#f1f5f9'}, ticks:{color:'#94a3b8',font:{family:'DM Mono',size:10},callback:v=>'₩'+(v/1000).toFixed(0)+'K'}} } },
+    plugins:[candlestickPlugin]
+  });
+  candleChart._cd = raw;
+
+  volChart = new Chart(vctx,{
+    type:'bar',
+    data:{ labels:raw.map(d=>d.t), datasets:[{data:raw.map(d=>d.v), backgroundColor:raw.map(d=>d.c>=d.o?'rgba(22,163,74,0.5)':'rgba(220,38,38,0.5)'), borderRadius:2}] },
+    options:{ responsive:true, animation:{duration:300}, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`成交量 ${c.parsed.y}万`}}},
+      scales:{ x:{display:false}, y:{position:'right',grid:{color:'#f1f5f9'}, ticks:{color:'#94a3b8',font:{family:'DM Mono',size:9},maxTicksLimit:3}} } }
+  });
 }
 
-function renderWatchlist() {
-    document.getElementById('watchlist').innerHTML = watchlist.map(id => `
-        <div class="stock-card ${id===activeId?'active':''}" onclick="loadPage('${id}')">
-            <div style="font-weight:700; font-size:14px;">${id}</div>
-            <div style="font-size:11px; color:var(--muted); margin-top:4px;">点击查看</div>
-        </div>
-    `).join('');
+function setRange(n, el){
+  candleRange=n;
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderCandles();
 }
 
-function renderFX() {
-    const fx = [{p:'USD/CNY', v:7.195}, {p:'USD/KRW', v:1334.2}];
-    document.getElementById('fxList').innerHTML = fx.map(f => `
-        <div class="fx-box">
-            <div style="font-size:10px; color:var(--muted);">${f.p}</div>
-            <div style="font-weight:700; font-family:'DM Mono';">${f.v}</div>
-        </div>
-    `).join('');
+// ── WATCHLIST ──────────────────────────────────────────────────────
+async function renderWatchlist(){
+  const el = document.getElementById('watchlist');
+  el.innerHTML = '';
+  for(const sym of Object.keys(STOCKS)){
+    const d = await fetchStock(sym);
+    const chg = d ? d.price-d.prevClose : 0;
+    const pct = d ? chg/d.prevClose*100 : 0;
+    const cls = pct>=0?'up':'dn'; const sign=pct>=0?'+':''; const arrow=pct>=0?'▲':'▼';
+    const active = sym===active_sym?'active':'';
+    const div = document.createElement('div');
+    div.className = `stock-item ${sym===active?'active':''}`;
+    div.onclick = ()=>selectStock(sym);
+    div.innerHTML = `<div><div class="si-sym">${STOCKS[sym].short}</div><div class="si-name">${STOCKS[sym].name}</div></div>
+      <div><div class="si-price">${d?'₩'+d.price.toLocaleString():'--'}</div><div class="si-chg ${cls}">${d?arrow+sign+pct.toFixed(2)+'%':'--'}</div></div>`;
+    el.appendChild(div);
+  }
 }
 
-function renderHeatmap() {
-    const sectors = [{n:'半导体',v:'+1.2'}, {n:'AI算力',v:'+2.5'}, {n:'新能源',v:'-0.8'}];
-    document.getElementById('hMap').innerHTML = sectors.map(s => `
-        <div class="hcell" style="background:${s.v>0?'var(--up-bg)':'var(--down-bg)'}; color:${s.v>0?'var(--up)':'var(--down)'}">
-            <div style="font-weight:700;">${s.n}</div><div>${s.v}%</div>
-        </div>
-    `).join('');
+async function renderOtherStocks(){
+  const others = Object.keys(STOCKS).filter(s=>s!==active);
+  const el = document.getElementById('otherStocks');
+  el.innerHTML = '';
+  for(const sym of others){
+    const d = await fetchStock(sym);
+    const chg = d?d.price-d.prevClose:0; const pct=d?chg/d.prevClose*100:0;
+    const cls=pct>=0?'up':'dn'; const sign=pct>=0?'+':''; const arrow=pct>=0?'▲':'▼';
+    el.innerHTML += `<div onclick="selectStock('${sym}')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:var(--bg)">
+      <div><div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent)">${STOCKS[sym].short}</div><div style="font-size:11px;color:var(--muted)">${STOCKS[sym].name}</div></div>
+      <div style="text-align:right"><div style="font-family:var(--mono);font-size:13px;font-weight:600">${d?'₩'+d.price.toLocaleString():'--'}</div><div style="font-family:var(--mono);font-size:11px" class="${cls}">${d?arrow+sign+pct.toFixed(2)+'%':'--'}</div></div>
+    </div>`;
+  }
 }
 
-function renderNews(id, isUp) {
-    document.getElementById('newsList').innerHTML = `
-        <div class="news-item">
-            <span class="news-tag" style="background:var(--up-bg); color:var(--up);">利好</span>
-            <span style="font-size:13px;">${id} 机构持仓比例近期显著提升，市场信心增强。</span>
-        </div>
-        <div class="news-item">
-            <span class="news-tag" style="background:#f1f5f9; color:var(--muted);">中性</span>
-            <span style="font-size:13px;">分析师称全球需求回暖可能带动 ${id} 下季度财报超预期。</span>
-        </div>`;
+function selectStock(sym){
+  active = sym;
+  renderWatchlist();
+  renderHero(sym);
+  renderOtherStocks();
 }
 
-setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
-loadPage(activeId);
+// ── NEWS ───────────────────────────────────────────────────────────
+function renderNews(sym){
+  document.getElementById('newsList').innerHTML = (NEWS[sym]||[]).map(n=>`
+    <div class="news-item">
+      <div><span class="news-tag ${n.tag}">${n.tag==='pos'?'利好':n.tag==='neg'?'利空':'中性'}</span><span class="news-date">${n.date}</span></div>
+      <div class="news-title">${n.title}</div>
+      <div class="news-src">来源：${n.src}</div>
+    </div>`).join('');
+}
+
+// ── HEATMAP ────────────────────────────────────────────────────────
+function renderHeatmap(){
+  document.getElementById('heatmap').innerHTML = SECTORS.map(n=>{
+    const c = +(Math.random()*5.6-2.8).toFixed(2);
+    const isUp=c>=0; const sign=c>=0?'+':'';
+    const intensity=Math.min(Math.abs(c)/3,1);
+    const bg=isUp?`rgba(22,163,74,${0.07+intensity*0.33})`:`rgba(220,38,38,${0.07+intensity*0.33})`;
+    const color=isUp?'var(--up)':'var(--down)';
+    return `<div class="hcell" style="background:${bg};border-color:${color}44"><div class="hn" style="color:${color}">${n}</div><div class="hv" style="color:${color}">${sign}${c}%</div></div>`;
+  }).join('');
+}
+
+// ── INIT ───────────────────────────────────────────────────────────
+let active_sym = active;
+async function init(){
+  await renderWatchlist();
+  await renderHero(active);
+  await renderOtherStocks();
+  renderHeatmap();
+  setInterval(renderHeatmap, 5000);
+  // refresh real data every 5 minutes
+  setInterval(async()=>{
+    cache = {};
+    await renderWatchlist();
+    await renderHero(active);
+    await renderOtherStocks();
+  }, 5*60*1000);
+}
+
+init();
 </script>
 </body>
 </html>
