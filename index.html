@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极简股票看板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #1a1a1b; color: #fff; font-family: sans-serif; padding: 15px; }
+        .card { background: #2b2b2b; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .price { font-size: 24px; font-weight: bold; color: #00ff88; }
+        canvas { width: 100% !important; height: 200px !important; }
+    </style>
+</head>
+<body>
+    <h2>我的股票看板</h2>
+    <div id="app">加载中...</div>
+
+    <script>
+        async function fetchStock(symbol) {
+            const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=3mo`);
+            const data = await res.json();
+            const result = data.chart.result[0];
+            return {
+                symbol: result.meta.symbol,
+                price: result.meta.regularMarketPrice,
+                close: result.indicators.quote[0].close
+            };
+        }
+
+        async function init() {
+            const stocks = ['000660.KS', '005930.KS']; // 海力士和三星
+            let html = '';
+            for(let s of stocks) {
+                const data = await fetchStock(s);
+                html += `
+                    <div class="card">
+                        <div>${data.symbol}</div>
+                        <div class="price">$${data.price}</div>
+                        <canvas id="chart-${data.symbol}"></canvas>
+                    </div>
+                `;
+            }
+            document.getElementById('app').innerHTML = html;
+            // 这里可以后续添加图表逻辑
+        }
+        init();
+    </script>
+</body>
+</html>
