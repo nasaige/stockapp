@@ -3,60 +3,77 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StockView · 真实数据看板</title>
+<title>StockView · 实时监控看板</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root {
   --bg: #f8fafc; --white: #fff; --border: #e2e8f0; --text: #0f172a;
   --text2: #475569; --muted: #94a3b8; --accent: #0ea5e9;
-  --accent-bg: #f0f9ff; --up: #16a34a; --up-bg: #f0fdf4;
-  --down: #dc2626; --down-bg: #fef2f2;
+  --accent-bg: #f0f9ff; --up: #16a34a; --up-bg: #f0fdf4; --up-b: #bbf7d0;
+  --down: #dc2626; --down-bg: #fef2f2; --down-b: #fecaca;
   --shadow: 0 1px 3px rgba(0,0,0,0.08); --mono: 'DM Mono',monospace; --sans: 'Noto Sans SC',sans-serif;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
-.app { display:grid; grid-template-columns:240px 1fr; grid-template-rows:56px 1fr; min-height:100vh; }
+body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; overflow:hidden; }
+
+/* ── LAYOUT ── */
+.app { display:grid; grid-template-columns:240px 1fr; grid-template-rows:56px 1fr; height:100vh; }
 .topbar { grid-column:1/-1; background:var(--white); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 20px; box-shadow:var(--shadow); z-index:10; }
-.sidebar { background:var(--white); border-right:1px solid var(--border); padding:16px 12px; display:flex; flex-direction:column; gap:6px; }
+.sidebar { background:var(--white); border-right:1px solid var(--border); overflow-y:auto; padding:16px 12px; display:flex; flex-direction:column; gap:6px; }
 .main { overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
-.brand { display:flex; align-items:center; gap:10px; font-weight:700; }
-.clock { font-family:var(--mono); color:var(--accent); font-weight:500; }
-.card { background:var(--white); border:1px solid var(--border); border-radius:12px; padding:18px; box-shadow:var(--shadow); }
-.hero-price { font-family:var(--mono); font-size:42px; font-weight:600; margin:10px 0; }
-.hero-chg { display:inline-block; padding:4px 12px; border-radius:6px; font-weight:600; font-family:var(--mono); }
-.up { color:var(--up); background:var(--up-bg); }
-.down { color:var(--down); background:var(--down-bg); }
-.chart-container { height:300px; margin-top:20px; }
-.heatmap { display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:10px; }
-.hcell { padding:15px; border-radius:8px; text-align:center; }
-.sidebar-item { padding:10px; border-radius:8px; cursor:pointer; margin-bottom:4px; border:1px solid transparent; }
-.sidebar-item.active { background:var(--accent-bg); border-color:var(--accent); }
+
+/* ── COMPONENTS ── */
+.card { background:var(--white); border:1px solid var(--border); border-radius:10px; padding:18px; box-shadow:var(--shadow); }
+.brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; }
+.live-badge { display:flex; align-items:center; gap:5px; background:var(--up-bg); border:1px solid var(--up-b); border-radius:20px; padding:4px 10px; font-size:11px; color:var(--up); font-weight:600; }
+.stock-item { padding:10px; border-radius:8px; cursor:pointer; transition:all 0.15s; border:1px solid transparent; }
+.stock-item:hover { background:var(--bg); }
+.stock-item.active { background:var(--accent-bg); border-color:#bae6fd; }
+.hero-price { font-family:var(--mono); font-size:42px; font-weight:600; line-height:1; margin:10px 0; }
+.hero-chg { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:6px; font-family:var(--mono); font-size:14px; font-weight:600; }
+.hero-chg.up { background:var(--up-bg); color:var(--up); border:1px solid var(--up-b); }
+.hero-chg.down { background:var(--down-bg); color:var(--down); border:1px solid var(--down-b); }
+.news-item { padding:12px; border-radius:8px; border:1px solid var(--border); margin-bottom:8px; }
+.news-tag { font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; text-transform:uppercase; margin-right:8px; }
+.hmap { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.hcell { padding:12px; border-radius:8px; text-align:center; border:1px solid transparent; }
+#mainChart { height:260px !important; }
 </style>
 </head>
 <body>
 <div class="app">
   <header class="topbar">
-    <div class="brand">📈 StockView PRO</div>
-    <div class="clock" id="clock">00:00:00</div>
+    <div class="brand"><div style="width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;">S</div>StockView · 亚洲市场</div>
+    <div style="display:flex;align-items:center;gap:15px;">
+      <span class="live-badge">● 实时</span>
+      <span id="clock" style="font-family:var(--mono);font-weight:500;">00:00:00</span>
+    </div>
   </header>
-  
+
   <aside class="sidebar">
-    <div style="font-size:11px; color:var(--muted); margin-bottom:10px;">自选列表</div>
+    <div style="font-size:10px; font-weight:700; color:var(--muted); letter-spacing:1px; margin-bottom:10px;">自选股票</div>
     <div id="watchlist"></div>
   </aside>
 
   <main class="main">
     <div class="card">
-      <div id="heroName" style="font-size:20px; font-weight:700;">加载中...</div>
+      <div id="heroName" style="font-size:22px; font-weight:700;">加载中...</div>
+      <div id="heroSym" style="font-family:var(--mono); font-size:13px; color:var(--muted);">SYMBOL</div>
       <div id="heroPrice" class="hero-price">₩0</div>
       <div id="heroChg" class="hero-chg">--</div>
-      <div class="chart-container"><canvas id="mainChart"></canvas></div>
+      <div style="margin-top:20px;"><canvas id="mainChart"></canvas></div>
     </div>
 
-    <div class="card">
-      <div style="font-weight:700; margin-bottom:15px;">板块热力 (模拟)</div>
-      <div class="heatmap" id="heatmap"></div>
+    <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:16px;">
+      <div class="card">
+        <div style="font-size:11px; font-weight:700; color:var(--muted); margin-bottom:12px;">最新资讯</div>
+        <div id="newsList"></div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px; font-weight:700; color:var(--muted); margin-bottom:12px;">板块热力</div>
+        <div class="hmap" id="heatmap"></div>
+      </div>
     </div>
   </main>
 </div>
@@ -65,9 +82,14 @@ body { background:var(--bg); color:var(--text); font-family:var(--sans); min-hei
 const STOCKS = [
   { id: '000660.KS', name: 'SK 海力士' },
   { id: '005930.KS', name: '三星电子' },
-  { id: 'TSM', name: '台积电' },
-  { id: 'NVDA', name: '英伟达' }
+  { id: '035420.KS', name: 'NAVER' },
+  { id: '000270.KS', name: '起亚汽车' }
 ];
+
+const NEWS_MOCK = {
+  '000660.KS': [{tag:'up', title:'HBM3E产能提前锁单，海力士全年盈利有望翻倍', src:'金融时报'}, {tag:'neu', title:'与英伟达合作深入，维持增持评级', src:'路透社'}],
+  'default': [{tag:'neu', title:'韩国出口连续五个月增长，芯片带动复苏', src:'韩联社'}]
+};
 
 let activeId = '000660.KS';
 let chart = null;
@@ -77,29 +99,28 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 
-async function fetchData(symbol) {
+async function loadData(symbol) {
   try {
     const res = await fetch(`/api/stock?symbol=${symbol}`);
-    return await res.json();
-  } catch (e) { return null; }
+    const data = await res.json();
+    renderHero(data, STOCKS.find(s => s.id === symbol).name);
+    renderNews(symbol);
+  } catch (e) { console.error('数据加载失败', e); }
 }
 
-async function renderPage(symbol) {
-  const data = await fetchData(symbol);
-  if (!data) return;
-
-  const currentStock = STOCKS.find(s => s.id === symbol);
-  document.getElementById('heroName').innerText = currentStock.name + ' (' + data.symbol + ')';
+function renderHero(data, name) {
+  document.getElementById('heroName').innerText = name;
+  document.getElementById('heroSym').innerText = data.symbol;
   document.getElementById('heroPrice').innerText = '₩' + data.price.toLocaleString();
   
-  const lastCandle = data.candles[data.candles.length-1];
-  const firstCandle = data.candles[0];
-  const isUp = data.price >= firstCandle.c;
-  const chgPct = ((data.price - firstCandle.c) / firstCandle.c * 100).toFixed(2);
+  const first = data.candles[0].c;
+  const last = data.price;
+  const isUp = last >= first;
+  const pct = ((last - first) / first * 100).toFixed(2);
   
   const chgEl = document.getElementById('heroChg');
-  chgEl.innerText = (isUp ? '▲ +' : '▼ ') + chgPct + '%';
-  chgEl.className = 'hero-chg ' + (isUp ? 'up' : 'down');
+  chgEl.className = `hero-chg ${isUp ? 'up' : 'down'}`;
+  chgEl.innerText = `${isUp ? '▲' : '▼'} ${pct}%`;
 
   updateChart(data.candles, isUp ? '#16a34a' : '#dc2626');
 }
@@ -107,65 +128,69 @@ async function renderPage(symbol) {
 function updateChart(candles, color) {
   const ctx = document.getElementById('mainChart').getContext('2d');
   if (chart) chart.destroy();
-  
   chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: candles.map(c => c.t),
       datasets: [{
-        label: '股价',
         data: candles.map(c => c.c),
         borderColor: color,
         borderWidth: 2,
         pointRadius: 0,
         fill: true,
         backgroundColor: color + '11',
-        tension: 0.3
+        tension: 0.4
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false } },
-        y: { position: 'right', grid: { color: '#f1f5f9' } }
-      }
+      scales: { x: { display: false }, y: { position: 'right', grid: { color: '#f1f5f9' } } }
     }
   });
 }
 
 function renderSidebar() {
-  const container = document.getElementById('watchlist');
-  container.innerHTML = STOCKS.map(s => `
-    <div class="sidebar-item ${s.id === activeId ? 'active' : ''}" onclick="changeStock('${s.id}')">
-      <div style="font-weight:600; font-size:14px;">${s.name}</div>
-      <div style="font-size:11px; color:var(--muted);">${s.id}</div>
+  document.getElementById('watchlist').innerHTML = STOCKS.map(s => `
+    <div class="stock-item ${s.id === activeId ? 'active' : ''}" onclick="changeStock('${s.id}')">
+      <div style="font-weight:600; font-size:13px;">${s.id}</div>
+      <div style="font-size:11px; color:var(--muted);">${s.name}</div>
     </div>
   `).join('');
+}
+
+function renderNews(sym) {
+  const news = NEWS_MOCK[sym] || NEWS_MOCK['default'];
+  document.getElementById('newsList').innerHTML = news.map(n => `
+    <div class="news-item">
+      <span class="news-tag" style="background:${n.tag==='up'?'var(--up-bg)':'#f1f5f9'}; color:${n.tag==='up'?'var(--up)':'var(--text2)'}">${n.tag==='up'?'利好':'中性'}</span>
+      <span style="font-size:13px; font-weight:500;">${n.title}</span>
+      <div style="font-size:11px; color:var(--muted); margin-top:4px;">来源：${n.src}</div>
+    </div>
+  `).join('');
+}
+
+function renderHeatmap() {
+  const sectors = ['半导体', '汽车', '金融', '医疗', '电池', '互联网'];
+  document.getElementById('heatmap').innerHTML = sectors.map(s => {
+    const v = (Math.random() * 4 - 2).toFixed(2);
+    return `<div class="hcell" style="background:${v>0?'var(--up-bg)':'var(--down-bg)'}; color:${v>0?'var(--up)':'var(--down)'}">
+      <div style="font-size:10px;">${s}</div><div style="font-weight:700;">${v}%</div>
+    </div>`;
+  }).join('');
 }
 
 window.changeStock = (id) => {
   activeId = id;
   renderSidebar();
-  renderPage(id);
+  loadData(id);
 };
 
-function renderHeatmap() {
-  const sectors = ['半导体', '人工智能', '新能源', '消费电子', '云计算', '生物医药'];
-  document.getElementById('heatmap').innerHTML = sectors.map(s => {
-    const val = (Math.random() * 4 - 2).toFixed(2);
-    return `<div class="hcell" style="background:${val > 0 ? 'var(--up-bg)' : 'var(--down-bg)'}; color:${val > 0 ? 'var(--up)' : 'var(--down)'}">
-      <div style="font-size:12px;">${s}</div>
-      <div style="font-weight:700;">${val > 0 ? '+' : ''}${val}%</div>
-    </div>`;
-  }).join('');
-}
-
-// 初始化
+// 启动
 renderSidebar();
-renderPage(activeId);
 renderHeatmap();
+loadData(activeId);
 </script>
 </body>
 </html>
