@@ -23,7 +23,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .main{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-logo{width:30px;height:30px;background:var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
-.brand-name{font-size:16px;font-weight:700;color:var(--text)}
+.brand-name{font-size:16px;font-weight:700}
 .brand-sub{font-size:11px;color:var(--muted)}
 .top-right{display:flex;align-items:center;gap:12px}
 .live-badge{display:flex;align-items:center;gap:5px;background:#f6ffed;border:1px solid #b7eb8f;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;color:#389e0d}
@@ -38,10 +38,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .add-input{flex:1;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:var(--sans);outline:none;background:var(--bg)}
 .add-input:focus{border-color:var(--accent);background:var(--white)}
 .add-btn{padding:6px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer}
-.s-item{display:flex;align-items:center;justify-content:space-between;padding:8px 8px;border-radius:6px;cursor:pointer;border:1px solid transparent;transition:all 0.15s}
+.s-item{display:flex;align-items:center;justify-content:space-between;padding:8px;border-radius:6px;cursor:pointer;border:1px solid transparent;transition:all 0.15s}
 .s-item:hover{background:var(--bg)}
 .s-item.active{background:var(--accent-bg);border-color:#91caff}
-.si-sym{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text)}
+.si-sym{font-family:var(--mono);font-size:12px;font-weight:700}
 .s-item.active .si-sym{color:var(--accent)}
 .si-name{font-size:10px;color:var(--muted);margin-top:1px}
 .si-price{font-family:var(--mono);font-size:12px;font-weight:600;text-align:right}
@@ -50,9 +50,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .s-item:hover .si-rm{opacity:1}
 .up{color:var(--up)}.dn{color:var(--down)}
 .card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;box-shadow:var(--shadow)}
-.card-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;letter-spacing:0.5px}
-.hero-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px}
-.hero-name{font-size:20px;font-weight:700;color:var(--text)}
+.card-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.hero-name{font-size:20px;font-weight:700}
 .hero-sym{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:3px}
 .hero-price{font-family:var(--mono);font-size:40px;font-weight:700;margin-top:10px;line-height:1;letter-spacing:-1px}
 .hero-chg{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:4px 12px;border-radius:4px;font-family:var(--mono);font-size:13px;font-weight:700}
@@ -73,45 +72,38 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 .range-tabs{display:flex;gap:4px;margin-bottom:10px}
 .rtab{padding:3px 10px;border-radius:4px;font-size:11px;font-family:var(--mono);font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:var(--bg);transition:all 0.15s}
 .rtab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.chart-container{position:relative;height:240px;width:100%;overflow:hidden;cursor:grab;user-select:none}
-.chart-container:active{cursor:grabbing}
-#candleCanvas{position:absolute;top:0;left:0}
-#volChart{width:100%!important;height:60px!important;margin-top:8px}
+.chart-wrap{position:relative;width:100%;background:var(--bg);border-radius:6px;overflow:hidden}
+.candle-tip{position:absolute;background:rgba(26,26,46,0.92);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;font-family:var(--mono);pointer-events:none;display:none;z-index:10;line-height:1.8;white-space:nowrap;top:8px;left:8px}
 .other-item{display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px;cursor:pointer;background:var(--bg);transition:all 0.15s}
 .other-item:hover{border-color:var(--accent);background:var(--accent-bg)}
 .news-item{padding:10px 12px;border-radius:7px;border:1px solid var(--border);margin-bottom:7px}
 .news-item:last-child{margin-bottom:0}
-.news-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;text-transform:uppercase;margin-right:6px}
+.news-tag{font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;margin-right:6px}
 .news-tag.pos{background:var(--up-bg);color:var(--up)}
 .news-tag.neg{background:var(--down-bg);color:var(--down)}
 .news-tag.neu{background:#f5f5f5;color:var(--muted)}
 .news-date{font-size:11px;color:var(--muted);font-family:var(--mono)}
 .news-title{font-size:13px;line-height:1.5;margin-top:4px;font-weight:500}
 .news-src{font-size:11px;color:var(--muted);margin-top:3px}
-.hmap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.hmap{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
 .hcell{border-radius:6px;padding:8px 5px;text-align:center;border:1px solid transparent;transition:all 0.5s}
 .hcell .hn{font-size:11px;font-weight:700;margin-bottom:2px}
 .hcell .hv{font-size:12px;font-family:var(--mono);font-weight:600}
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .fx-row{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:6px;border:1px solid var(--border);margin-bottom:6px;background:var(--bg)}
-.fx-label{font-size:12px;font-weight:600;color:var(--text)}
-.fx-sub{font-size:10px;color:var(--muted);margin-top:1px}
 .loading{display:flex;align-items:center;justify-content:center;padding:36px;color:var(--muted);font-size:14px;gap:8px}
 .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.err{padding:18px;color:var(--up);font-size:13px;background:var(--up-bg);border-radius:8px;line-height:1.6}
-.candle-tip{position:absolute;background:rgba(26,26,46,0.92);color:#fff;padding:8px 12px;border-radius:6px;font-size:11px;font-family:var(--mono);pointer-events:none;display:none;z-index:10;line-height:1.8;white-space:nowrap}
+.err{padding:16px;color:var(--up);font-size:13px;background:var(--up-bg);border-radius:8px;line-height:1.8}
 @media(max-width:768px){
   .app{grid-template-columns:1fr;grid-template-rows:52px auto 1fr}
-  .sidebar{border-right:none;border-bottom:1px solid var(--border);padding:8px;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;max-height:none;gap:5px;align-items:center}
-  .sec-title{display:none}
-  .mkt-tabs{display:none}
+  .sidebar{border-right:none;border-bottom:1px solid var(--border);padding:8px;flex-direction:row;flex-wrap:nowrap;overflow-x:auto;gap:5px;align-items:center}
+  .sec-title,.mkt-tabs{display:none}
   .add-row{min-width:140px;margin-top:0}
   .s-item{min-width:85px;flex-direction:column;align-items:flex-start;gap:1px;padding:6px 7px}
   .si-rm{display:none}
   .stats-row{grid-template-columns:repeat(2,1fr)}
-  .chart-grid{grid-template-columns:1fr}
-  .bottom-grid{grid-template-columns:1fr}
+  .chart-grid,.bottom-grid{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -159,7 +151,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
       <div class="card-title">K线蜡烛图
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:10px;color:var(--muted);font-weight:400;font-family:var(--mono)" id="chartTs"></span>
-          <span style="font-size:10px;color:var(--muted)">可左右拖动</span>
+          <span style="font-size:10px;color:var(--muted)">← 拖动查看 →</span>
         </div>
       </div>
       <div class="range-tabs">
@@ -167,13 +159,13 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
         <div class="rtab" onclick="setRange(45,this)">2月</div>
         <div class="rtab" onclick="setRange(0,this)">全部</div>
       </div>
-      <div class="chart-container" id="chartContainer">
-        <canvas id="candleCanvas"></canvas>
+      <div class="chart-wrap" id="chartWrap">
+        <canvas id="candleCanvas" style="display:block;cursor:grab"></canvas>
         <div class="candle-tip" id="candleTip"></div>
       </div>
       <div style="margin-top:8px">
         <div class="card-title" style="margin-bottom:6px">成交量</div>
-        <canvas id="volChart"></canvas>
+        <canvas id="volCanvas" style="display:block;width:100%;height:55px"></canvas>
       </div>
     </div>
     <div class="card"><div class="card-title">其他自选</div><div id="otherList"></div></div>
@@ -181,12 +173,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
   <div class="bottom-grid">
     <div class="card"><div class="card-title">最新资讯</div><div id="newsList"></div></div>
     <div class="card">
-      <div class="card-title">板块热力图<span style="font-size:10px;font-weight:400;color:var(--muted)">(模拟)</span></div>
+      <div class="card-title">板块热力图<span style="font-size:10px;font-weight:400;color:var(--muted);margin-left:4px">(模拟)</span></div>
       <div class="hmap" id="heatmap"></div>
-      <div style="margin-top:14px">
-        <div class="card-title" style="margin-bottom:8px">主要汇率<span id="fxTime" style="font-size:10px;font-weight:400;color:var(--muted)"></span></div>
-        <div id="fxList"><div class="loading" style="padding:16px"><div class="spinner"></div>加载汇率…</div></div>
-      </div>
+      <div class="card-title">主要汇率<span id="fxTime" style="font-size:10px;font-weight:400;color:var(--muted);margin-left:4px"></span></div>
+      <div id="fxList"><div class="loading" style="padding:12px"><div class="spinner"></div>加载中…</div></div>
     </div>
   </div>
 </main>
@@ -194,32 +184,24 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 <script>
 const MKT_STOCKS={us:['NVDA','TSM','AAPL','MSFT'],hk:['0700.HK','9988.HK','3690.HK','1299.HK'],kr:['005930.KS','000660.KS','035420.KS','051910.KS'],jp:['7203.T','6758.T','9984.T','6861.T'],cn:['600519.SHH','000858.SHZ','601318.SHH','600036.SHH']};
 const NAMES={'NVDA':'英伟达','TSM':'台积电','AAPL':'苹果','MSFT':'微软','AMZN':'亚马逊','GOOGL':'谷歌','META':'Meta','0700.HK':'腾讯控股','9988.HK':'阿里巴巴','3690.HK':'美团','1299.HK':'友邦保险','005930.KS':'三星电子','000660.KS':'SK海力士','035420.KS':'NAVER','051910.KS':'LG化学','7203.T':'丰田汽车','6758.T':'索尼','9984.T':'软银','6861.T':'基恩士','600519.SHH':'贵州茅台','000858.SHZ':'五粮液','601318.SHH':'中国平安','600036.SHH':'招商银行'};
-const NEWS_DB={'NVDA':[{tag:'pos',title:'英伟达Blackwell GPU出货超预期，AI算力需求持续爆发',src:'CNBC',date:'2026-03-04'},{tag:'pos',title:'黄仁勋确认下一代Rubin架构2026年发布',src:'Bloomberg',date:'2026-03-03'},{tag:'neu',title:'英伟达市值突破3万亿美元，成全球第二大公司',src:'Reuters',date:'2026-03-02'}],'TSM':[{tag:'pos',title:'台积电3nm产能满载，2nm工艺量产在即',src:'DigiTimes',date:'2026-03-04'},{tag:'neg',title:'地缘政治风险持续：美国施压台积电限制对华业务',src:'WSJ',date:'2026-03-03'}],'AAPL':[{tag:'pos',title:'苹果AI功能覆盖全球，iPhone 17预购创历史新高',src:'9to5Mac',date:'2026-03-04'},{tag:'neg',title:'欧盟对苹果App Store开出18亿欧元罚单',src:'FT',date:'2026-03-03'}],'MSFT':[{tag:'pos',title:'微软Azure AI营收同比增长65%，超分析师预期',src:'CNBC',date:'2026-03-04'},{tag:'pos',title:'Copilot企业付费用户突破百万',src:'Bloomberg',date:'2026-03-03'}],'0700.HK':[{tag:'pos',title:'腾讯微信月活突破14亿，视频号广告收入高增长',src:'财新',date:'2026-03-04'},{tag:'neu',title:'腾讯游戏海外收入占比提升至30%',src:'证券时报',date:'2026-03-03'}],'005930.KS':[{tag:'neg',title:'三星HBM市占率下滑，SK海力士领跑AI内存',src:'韩国经济',date:'2026-03-04'},{tag:'pos',title:'三星3nm代工获高通大单',src:'DigiTimes',date:'2026-03-03'}],'000660.KS':[{tag:'pos',title:'SK海力士HBM3E供不应求，英伟达续签大单',src:'路透社',date:'2026-03-04'},{tag:'pos',title:'SK海力士Q1利润预期再上调',src:'彭博社',date:'2026-03-03'}],'600519.SHH':[{tag:'pos',title:'贵州茅台2025年净利润同比增长15%，创历史新高',src:'证券日报',date:'2026-03-04'},{tag:'neu',title:'茅台i茅台平台注册用户突破5000万',src:'上证报',date:'2026-03-03'}],'default':[{tag:'neu',title:'全球股市震荡，AI产业链个股分化明显',src:'Wind资讯',date:'2026-03-04'},{tag:'pos',title:'科技板块领涨，半导体指数年内涨幅超20%',src:'Bloomberg',date:'2026-03-03'},{tag:'neg',title:'美联储鹰派表态，全球市场承压',src:'Reuters',date:'2026-03-02'}]};
+const NEWS_DB={'NVDA':[{tag:'pos',title:'英伟达Blackwell GPU出货超预期，AI算力需求持续爆发',src:'CNBC',date:'2026-03-04'},{tag:'pos',title:'黄仁勋确认下一代Rubin架构2026年发布',src:'Bloomberg',date:'2026-03-03'},{tag:'neu',title:'英伟达市值突破3万亿美元，成全球第二大公司',src:'Reuters',date:'2026-03-02'}],'TSM':[{tag:'pos',title:'台积电3nm产能满载，2nm工艺量产在即',src:'DigiTimes',date:'2026-03-04'},{tag:'neg',title:'地缘政治风险：美国施压台积电限制对华业务',src:'WSJ',date:'2026-03-03'}],'AAPL':[{tag:'pos',title:'苹果AI功能覆盖全球，iPhone 17预购创历史新高',src:'9to5Mac',date:'2026-03-04'},{tag:'neg',title:'欧盟对苹果App Store开出18亿欧元罚单',src:'FT',date:'2026-03-03'}],'MSFT':[{tag:'pos',title:'微软Azure AI营收同比增长65%，超分析师预期',src:'CNBC',date:'2026-03-04'},{tag:'pos',title:'Copilot企业付费用户突破百万',src:'Bloomberg',date:'2026-03-03'}],'0700.HK':[{tag:'pos',title:'腾讯微信月活突破14亿，视频号广告收入高增长',src:'财新',date:'2026-03-04'},{tag:'neu',title:'腾讯游戏海外收入占比提升至30%',src:'证券时报',date:'2026-03-03'}],'005930.KS':[{tag:'neg',title:'三星HBM市占率下滑，SK海力士领跑AI内存',src:'韩国经济',date:'2026-03-04'},{tag:'pos',title:'三星3nm代工获高通大单',src:'DigiTimes',date:'2026-03-03'}],'000660.KS':[{tag:'pos',title:'SK海力士HBM3E供不应求，英伟达续签大单',src:'路透社',date:'2026-03-04'},{tag:'pos',title:'SK海力士Q1利润预期再上调',src:'彭博社',date:'2026-03-03'}],'600519.SHH':[{tag:'pos',title:'贵州茅台2025年净利润同比增长15%，创历史新高',src:'证券日报',date:'2026-03-04'},{tag:'neu',title:'茅台i茅台平台注册用户突破5000万',src:'上证报',date:'2026-03-03'}],'default':[{tag:'neu',title:'全球股市震荡，AI产业链个股分化明显',src:'Wind资讯',date:'2026-03-04'},{tag:'pos',title:'科技板块领涨，半导体指数年内涨幅超20%',src:'Bloomberg',date:'2026-03-03'},{tag:'neg',title:'美联储鹰派表态，全球市场承压',src:'Reuters',date:'2026-03-02'}]};
 const SECTORS=['半导体','科技','银行','消费','能源','医药','汽车','地产'];
 
-let watchlist=[...MKT_STOCKS.us];
-let active='NVDA';
-let currentMkt='us';
-let cache={};
-let allCandles=[];
-let candleRange=20;
-let vChart;
-let fxCache=null;
-let dragStart=null;
-let offsetX=0;
-let dragOffsetX=0;
+let watchlist=[...MKT_STOCKS.us],active='NVDA',currentMkt='us';
+let cache={},allCandles=[],candleRange=20;
+let vChartInst=null,fxCache=null;
+let dragStart=null,offsetX=0,dragOffsetX=0;
 
 function updateClock(){
   const now=new Date();
   document.getElementById('clock').textContent=now.toLocaleTimeString('zh-CN',{hour12:false});
-  const h=now.getHours(),m=now.getMinutes(),t=h*60+m;
-  let s='';
+  const t=now.getHours()*60+now.getMinutes();
+  let s='⚪ 非交易时段';
   if(t>=570&&t<690)s='🟢 A股上午盘';
   else if(t>=690&&t<750)s='🟡 A股午休';
   else if(t>=750&&t<900)s='🟢 A股下午盘';
   else if(t>=210&&t<330)s='🔵 美股盘前';
   else if(t>=330&&t<630)s='🟢 美股交易中';
-  else s='⚪ 非交易时段';
   document.getElementById('mktStatus').textContent=s;
 }
 setInterval(updateClock,1000);updateClock();
@@ -231,13 +213,13 @@ function setMkt(mkt,el){
   watchlist=[...MKT_STOCKS[mkt]];
   active=watchlist[0];
   cache={};offsetX=0;
-  renderWatchlist();renderHero();renderOtherList();renderNews();
+  renderWatchlist();renderHero();renderOtherList();
 }
 
 async function fetchStock(sym){
   if(cache[sym]&&Date.now()-cache[sym].ts<5*60*1000)return cache[sym].data;
   try{
-    const res=await fetch(`/api/stock?symbol=${sym}`);
+    const res=await fetch(`/api/stock?symbol=${encodeURIComponent(sym)}`);
     if(!res.ok)throw new Error();
     const data=await res.json();
     if(data.error)throw new Error(data.error);
@@ -255,116 +237,150 @@ async function fetchFX(){
   }catch(e){return null;}
 }
 
-function curSymbol(d){return d&&d.currency==='KRW'?'₩':d&&d.currency==='JPY'?'¥':d&&d.currency==='HKD'?'HK$':d&&d.currency==='CNY'?'¥':'$';}
-function fmt(v,d){return v!=null?v.toFixed(d??2):'--';}
-function fmtPrice(v,cur){if(v==null)return '--';if(cur==='KRW'||cur==='JPY')return Math.round(v).toLocaleString();return v.toFixed(2);}
+function curSym(d){return d&&d.currency==='KRW'?'₩':d&&d.currency==='JPY'?'¥':d&&d.currency==='HKD'?'HK$':d&&d.currency==='CNY'?'¥':'$';}
+function fmt(v,d){return v!=null?Number(v).toFixed(d??2):'--';}
+function fmtP(v,cur){if(v==null)return '--';if(cur==='KRW'||cur==='JPY')return Math.round(v).toLocaleString();return Number(v).toFixed(2);}
 
 async function renderHero(){
   const card=document.getElementById('heroCard');
   card.innerHTML='<div class="loading"><div class="spinner"></div>加载 '+active+' 数据中…</div>';
   const d=await fetchStock(active);
-  if(!d){card.innerHTML='<div class="err">⚠️ 数据加载失败<br>可能原因：① 股票代码有误 ② 每分钟限25次请求，请稍后刷新 ③ 免费版不支持部分市场<br>格式：美股 NVDA · 港股 0700.HK · 韩股 005930.KS · 日股 7203.T · A股 600519.SHH</div>';return;}
-  const c=curSymbol(d),name=NAMES[active]||d.symbol;
+  if(!d){
+    card.innerHTML='<div class="err">⚠️ 数据加载失败<br>原因：① 代码有误 ② 每分钟限25次请求请稍后刷新 ③ 免费版不支持该市场<br>支持：美股 NVDA · 港股 0700.HK · 韩股 005930.KS · 日股 7203.T · A股 600519.SHH</div>';
+    return;
+  }
+  const c=curSym(d),name=NAMES[active]||d.symbol;
   const chg=d.chgAbs||0,pct=d.chgPct||0;
   const cls=pct>=0?'up':'dn',sign=pct>=0?'+':'',arrow=pct>=0?'▲':'▼';
-  card.innerHTML=`<div class="hero-top"><div>
-    <div class="hero-name">${name}</div>
+  card.innerHTML=`
+    <div><div class="hero-name">${name}</div>
     <div class="hero-sym">${d.symbol} · ${d.currency} · 最新交易日：${d.latestDay||'--'}</div>
-    <div class="hero-price ${cls}">${c}${fmtPrice(d.price,d.currency)}</div>
-    <span class="hero-chg ${cls}">${arrow} ${sign}${fmt(chg)} &nbsp; ${sign}${fmt(pct)}%</span>
-  </div></div>
-  <div class="hero-meta">
-    <div><div class="hm-label">昨日收盘</div><div class="hm-val">${c}${fmtPrice(d.prevClose,d.currency)}</div></div>
-    <div><div class="hm-label">今日开盘</div><div class="hm-val">${c}${fmtPrice(d.open,d.currency)}</div></div>
-    <div><div class="hm-label">今日最高</div><div class="hm-val up">${c}${fmtPrice(d.high,d.currency)}</div></div>
-    <div><div class="hm-label">今日最低</div><div class="hm-val dn">${c}${fmtPrice(d.low,d.currency)}</div></div>
-    <div><div class="hm-label">成交量</div><div class="hm-val">${d.volume}万手</div></div>
-  </div>
-  <div class="ext-market">
-    <div class="ext-item"><div class="ext-label">盘前/盘后</div><div class="ext-val" style="color:var(--muted);font-size:11px">免费版暂不支持</div></div>
-    <div class="ext-item"><div class="ext-label">历史最高</div><div class="ext-val up">${c}${d.candles?.length?fmtPrice(Math.max(...d.candles.map(c=>c.h)),d.currency):'--'}</div></div>
-    <div class="ext-item"><div class="ext-label">历史最低</div><div class="ext-val dn">${c}${d.candles?.length?fmtPrice(Math.min(...d.candles.map(c=>c.l)),d.currency):'--'}</div></div>
-  </div>`;
-  document.getElementById('s-open').textContent=`${c}${fmtPrice(d.open,d.currency)}`;
-  document.getElementById('s-high').textContent=`${c}${fmtPrice(d.high,d.currency)}`;
-  document.getElementById('s-low').textContent=`${c}${fmtPrice(d.low,d.currency)}`;
+    <div class="hero-price ${cls}">${c}${fmtP(d.price,d.currency)}</div>
+    <span class="hero-chg ${cls}">${arrow} ${sign}${fmt(chg)} &nbsp; ${sign}${fmt(pct)}%</span></div>
+    <div class="hero-meta">
+      <div><div class="hm-label">昨日收盘</div><div class="hm-val">${c}${fmtP(d.prevClose,d.currency)}</div></div>
+      <div><div class="hm-label">今日开盘</div><div class="hm-val">${c}${fmtP(d.open,d.currency)}</div></div>
+      <div><div class="hm-label">今日最高</div><div class="hm-val up">${c}${fmtP(d.high,d.currency)}</div></div>
+      <div><div class="hm-label">今日最低</div><div class="hm-val dn">${c}${fmtP(d.low,d.currency)}</div></div>
+      <div><div class="hm-label">成交量</div><div class="hm-val">${d.volume}万手</div></div>
+    </div>
+    <div class="ext-market">
+      <div class="ext-item"><div class="ext-label">区间最高</div><div class="ext-val up">${c}${d.candles?.length?fmtP(Math.max(...d.candles.map(x=>x.h)),d.currency):'--'}</div></div>
+      <div class="ext-item"><div class="ext-label">区间最低</div><div class="ext-val dn">${c}${d.candles?.length?fmtP(Math.min(...d.candles.map(x=>x.l)),d.currency):'--'}</div></div>
+    </div>`;
+  document.getElementById('s-open').textContent=`${c}${fmtP(d.open,d.currency)}`;
+  document.getElementById('s-high').textContent=`${c}${fmtP(d.high,d.currency)}`;
+  document.getElementById('s-low').textContent=`${c}${fmtP(d.low,d.currency)}`;
   document.getElementById('s-vol').textContent=`${d.volume}万`;
-  allCandles=d.candles||[];renderCandles();renderNews();
+  allCandles=d.candles||[];
+  setTimeout(()=>renderCandles(),50);
+  renderNews();
 }
 
 function renderCandles(){
   const raw=candleRange===0?allCandles:allCandles.slice(-candleRange);
   if(!raw.length)return;
-  const container=document.getElementById('chartContainer');
-  const W=container.clientWidth,H=240;
-  container.style.height=H+'px';
-  let canvas=document.getElementById('candleCanvas');
+  const wrap=document.getElementById('chartWrap');
+  const W=wrap.getBoundingClientRect().width||wrap.offsetWidth||360;
+  const H=240;
+  wrap.style.height=H+'px';
+  const canvas=document.getElementById('candleCanvas');
   canvas.width=W;canvas.height=H;
-  const PAD={top:20,bottom:30,left:10,right:60};
-  const drawW=W-PAD.left-PAD.right;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+
+  const PAD={t:20,b:28,l:8,r:58};
+  const drawW=W-PAD.l-PAD.r;
   const gap=drawW/raw.length;
-  const candleW=Math.max(4,gap*0.7);
-  const maxP=Math.max(...raw.map(d=>d.h)),minP=Math.min(...raw.map(d=>d.l));
-  const range=maxP-minP||1;
-  function toY(v){return PAD.top+(1-(v-minP)/range)*(H-PAD.top-PAD.bottom);}
-  function toX(i){return PAD.left+gap*(i+0.5)+offsetX;}
+  const cw=Math.max(3,gap*0.65);
+  const maxP=Math.max(...raw.map(d=>d.h));
+  const minP=Math.min(...raw.map(d=>d.l));
+  const rng=maxP-minP||1;
+
+  function toY(v){return PAD.t+(1-(v-minP)/rng)*(H-PAD.t-PAD.b);}
+  function toX(i){return PAD.l+gap*(i+0.5)+offsetX;}
+
   function draw(){
     const ctx=canvas.getContext('2d');
     ctx.clearRect(0,0,W,H);
+    // grid
     ctx.strokeStyle='#e8ecf0';ctx.lineWidth=0.5;
     for(let i=0;i<5;i++){
-      const y=PAD.top+i*(H-PAD.top-PAD.bottom)/4;
-      ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(W-PAD.right,y);ctx.stroke();
-      const v=maxP-i*(maxP-minP)/4;
+      const y=PAD.t+i*(H-PAD.t-PAD.b)/4;
+      ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(W-PAD.r,y);ctx.stroke();
+      const v=maxP-i*rng/4;
       ctx.fillStyle='#94a3b8';ctx.font='10px Courier New';ctx.textAlign='left';
-      ctx.fillText(v>100?Math.round(v).toLocaleString():v.toFixed(2),W-PAD.right+4,y+4);
+      ctx.fillText(v>100?Math.round(v).toLocaleString():v.toFixed(2),W-PAD.r+4,y+4);
     }
+    // candles
     raw.forEach((d,i)=>{
       const x=toX(i);
-      if(x<PAD.left-candleW||x>W-PAD.right+candleW)return;
+      if(x<PAD.l-cw||x>W-PAD.r+cw)return;
       const isUp=d.c>=d.o,color=isUp?'#cf1322':'#389e0d';
-      const oy=toY(d.o),cy=toY(d.c),hy=toY(d.h),ly=toY(d.l);
-      ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1;ctx.moveTo(x,hy);ctx.lineTo(x,ly);ctx.stroke();
-      ctx.fillStyle=color;ctx.fillRect(x-candleW/2,Math.min(oy,cy),candleW,Math.max(2,Math.abs(oy-cy)));
+      const oy=toY(d.o),cy2=toY(d.c),hy=toY(d.h),ly=toY(d.l);
+      ctx.strokeStyle=color;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(x,hy);ctx.lineTo(x,ly);ctx.stroke();
+      ctx.fillStyle=color;
+      ctx.fillRect(x-cw/2,Math.min(oy,cy2),cw,Math.max(2,Math.abs(oy-cy2)));
     });
+    // x labels
     const step=Math.ceil(raw.length/8);
     ctx.fillStyle='#94a3b8';ctx.font='10px Courier New';ctx.textAlign='center';
-    raw.forEach((d,i)=>{if(i%step===0){const x=toX(i);if(x>PAD.left&&x<W-PAD.right)ctx.fillText(d.t,x,H-8);}});
+    raw.forEach((d,i)=>{
+      if(i%step===0){const x=toX(i);if(x>PAD.l&&x<W-PAD.r)ctx.fillText(d.t,x,H-6);}
+    });
   }
   draw();
-  container.onmousedown=container.ontouchstart=(e)=>{
+
+  // drag
+  canvas.onmousedown=canvas.ontouchstart=(e)=>{
+    e.preventDefault();
     dragStart=e.type==='touchstart'?e.touches[0].clientX:e.clientX;
-    dragOffsetX=offsetX;container.style.cursor='grabbing';
+    dragOffsetX=offsetX;canvas.style.cursor='grabbing';
   };
   window.onmousemove=window.ontouchmove=(e)=>{
     if(dragStart===null)return;
     const x=e.type==='touchmove'?e.touches[0].clientX:e.clientX;
     offsetX=dragOffsetX+(x-dragStart);
-    const minOff=-(raw.length*gap-drawW+gap);
+    const minOff=Math.min(0,-(raw.length*gap-drawW));
     offsetX=Math.min(0,Math.max(minOff,offsetX));
     draw();
   };
-  window.onmouseup=window.ontouchend=()=>{dragStart=null;container.style.cursor='grab';};
-  container.onmousemove=(e)=>{
-    const rect=container.getBoundingClientRect(),mx=e.clientX-rect.left;
+  window.onmouseup=window.ontouchend=()=>{dragStart=null;canvas.style.cursor='grab';};
+
+  // tooltip
+  canvas.onmousemove=(e)=>{
+    const rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left;
     const tip=document.getElementById('candleTip');
-    const i=Math.round((mx-PAD.left-offsetX)/gap-0.5);
+    const i=Math.floor((mx-PAD.l-offsetX)/gap);
     if(i>=0&&i<raw.length){
       const d=raw[i],isUp=d.c>=d.o,color=isUp?'#cf1322':'#389e0d';
       tip.style.display='block';
-      tip.style.left=Math.min(mx+12,W-160)+'px';
-      tip.style.top='20px';
       tip.innerHTML=`<span style="color:#aaa">${d.t}</span><br>开 <b>${d.o.toLocaleString()}</b> 收 <b style="color:${color}">${d.c.toLocaleString()}</b><br>高 <b style="color:#cf1322">${d.h.toLocaleString()}</b> 低 <b style="color:#389e0d">${d.l.toLocaleString()}</b><br>量 <b>${d.v}万</b>`;
     }else{tip.style.display='none';}
   };
-  container.onmouseleave=()=>{document.getElementById('candleTip').style.display='none';};
-  if(vChart)vChart.destroy();
-  const vctx=document.getElementById('volChart').getContext('2d');
-  vChart=new Chart(vctx,{type:'bar',data:{labels:raw.map(d=>d.t),datasets:[{data:raw.map(d=>d.v),backgroundColor:raw.map(d=>d.c>=d.o?'rgba(207,19,34,0.5)':'rgba(56,158,13,0.5)'),borderRadius:2}]},options:{responsive:true,animation:{duration:200},plugins:{legend:{display:false}},scales:{x:{display:false},y:{position:'right',grid:{color:'#f0f2f5'},ticks:{color:'#94a3b8',font:{size:9},maxTicksLimit:3}}}}});
-  document.getElementById('chartTs').textContent='更新于 '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  canvas.onmouseleave=()=>{document.getElementById('candleTip').style.display='none';};
+
+  // volume
+  const vc=document.getElementById('volCanvas');
+  vc.width=W;vc.height=55;vc.style.width=W+'px';
+  const vctx=vc.getContext('2d');
+  vctx.clearRect(0,0,W,55);
+  const maxV=Math.max(...raw.map(d=>d.v))||1;
+  raw.forEach((d,i)=>{
+    const x=toX(i),bh=Math.max(2,(d.v/maxV)*48);
+    vctx.fillStyle=d.c>=d.o?'rgba(207,19,34,0.5)':'rgba(56,158,13,0.5)';
+    vctx.fillRect(x-cw/2,55-bh,cw,bh);
+  });
+
+  document.getElementById('chartTs').textContent='更新 '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
 }
 
-function setRange(n,el){candleRange=n;offsetX=0;document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));el.classList.add('active');renderCandles();}
+function setRange(n,el){
+  candleRange=n;offsetX=0;
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderCandles();
+}
 
 async function renderWatchlist(){
   const el=document.getElementById('watchlist');el.innerHTML='';
@@ -377,7 +393,7 @@ async function renderWatchlist(){
     const ss=sym.replace(/\.(KS|T|HK|SHH|SHZ)$/,'');
     div.innerHTML=`<div><div class="si-sym">${ss}</div><div class="si-name">${NAMES[sym]||sym}</div></div>
       <div style="display:flex;align-items:center">
-        <div><div class="si-price">${d?fmtPrice(d.price,d.currency):'--'}</div><div class="si-chg ${cls}">${d?arrow+sign+fmt(pct)+'%':'--'}</div></div>
+        <div><div class="si-price">${d?fmtP(d.price,d.currency):'--'}</div><div class="si-chg ${cls}">${d?arrow+sign+fmt(pct)+'%':'--'}</div></div>
         <span class="si-rm" onclick="event.stopPropagation();removeStock('${sym}')">×</span>
       </div>`;
     el.appendChild(div);
@@ -388,11 +404,11 @@ async function renderOtherList(){
   const el=document.getElementById('otherList');el.innerHTML='';
   for(const sym of watchlist.filter(s=>s!==active)){
     const d=await fetchStock(sym);
-    const pct=d?d.chgPct:0,cls=pct>=0?'up':'dn',sign=pct>=0?'+':'',arrow=pct>=0?'▲':'▼',c=curSymbol(d);
+    const pct=d?d.chgPct:0,cls=pct>=0?'up':'dn',sign=pct>=0?'+':'',arrow=pct>=0?'▲':'▼',c=curSym(d);
     const ss=sym.replace(/\.(KS|T|HK|SHH|SHZ)$/,'');
     el.innerHTML+=`<div class="other-item" onclick="selectStock('${sym}')">
       <div><div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--accent)">${ss}</div><div style="font-size:11px;color:var(--muted)">${NAMES[sym]||sym}</div></div>
-      <div style="text-align:right"><div style="font-family:var(--mono);font-size:13px;font-weight:600">${d?c+fmtPrice(d.price,d.currency):'--'}</div><div style="font-family:var(--mono);font-size:11px" class="${cls}">${d?arrow+sign+fmt(pct)+'%':'--'}</div></div>
+      <div style="text-align:right"><div style="font-family:var(--mono);font-size:13px;font-weight:600">${d?c+fmtP(d.price,d.currency):'--'}</div><div style="font-family:var(--mono);font-size:11px" class="${cls}">${d?arrow+sign+fmt(pct)+'%':'--'}</div></div>
     </div>`;
   }
 }
@@ -435,11 +451,11 @@ async function renderFX(){
   const el=document.getElementById('fxList');
   const data=await fetchFX();
   if(!data){el.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">汇率加载失败，请稍后刷新</div>';return;}
-  document.getElementById('fxTime').textContent=' · '+new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  document.getElementById('fxTime').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false});
   el.innerHTML=data.map(f=>`
     <div class="fx-row">
-      <div><div class="fx-label">${f.pair}</div><div class="fx-sub">${f.label}</div></div>
-      <div style="text-align:right"><div style="font-family:var(--mono);font-size:14px;font-weight:700">${f.val!=null?parseFloat(f.val).toFixed(4):'--'}</div></div>
+      <div><div style="font-size:12px;font-weight:600">${f.pair}</div><div style="font-size:10px;color:var(--muted)">${f.label}</div></div>
+      <div style="font-family:var(--mono);font-size:14px;font-weight:700">${f.val!=null?Number(f.val).toFixed(4):'--'}</div>
     </div>`).join('');
 }
 
