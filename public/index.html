@@ -1,73 +1,120 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>实时股票监控看板</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --bg: #0d1117; --card: #161b22; --green: #00ff88; --text: #c9d1d9; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; padding: 15px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #30363d; padding-bottom: 10px; }
-        .time { font-family: monospace; color: var(--green); }
-        .card { background: var(--card); border: 1px solid #30363d; border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-        .stock-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
-        .name { font-size: 20px; font-weight: bold; }
-        .price { font-size: 24px; color: var(--green); font-weight: bold; }
-        canvas { width: 100% !important; height: 160px !important; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockView · 实时股票看板</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f8fafc; --white: #fff; --border: #e2e8f0; --text: #0f172a;
+  --text2: #475569; --muted: #94a3b8; --accent: #0ea5e9;
+  --up: #16a34a; --down: #dc2626; --shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Noto Sans SC', sans-serif; }
+body { background: var(--bg); color: var(--text); padding: 16px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.time { font-family: 'DM Mono'; color: var(--accent); font-weight: 500; }
+.grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.card { background: var(--white); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.symbol { font-family: 'DM Mono'; font-size: 13px; color: var(--muted); }
+.name { font-size: 18px; font-weight: 700; margin-top: 2px; }
+.price-box { text-align: right; }
+.price { font-family: 'DM Mono'; font-size: 24px; font-weight: 600; }
+.change { font-size: 14px; font-weight: 500; margin-top: 2px; }
+.chart-container { height: 180px; position: relative; margin-top: 10px; }
+.heatmap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.hcell { padding: 10px; border-radius: 6px; text-align: center; border: 1px solid transparent; }
+.hn { font-size: 12px; margin-bottom: 2px; }
+.hv { font-family: 'DM Mono'; font-size: 14px; font-weight: 600; }
+@media (min-width: 768px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
 </head>
 <body>
-    <div class="header">
-        <div class="name">实时监控看板</div>
-        <div id="clock" class="time">00:00:00</div>
-    </div>
-    <div id="container"></div>
+<div class="header">
+  <h2 style="font-size: 20px;">实时监控看板</h2>
+  <div class="time" id="clock">--:--:--</div>
+</div>
 
-    <script>
-        // 更新时钟
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+<div class="grid" id="stockGrid">
+  </div>
 
-        const STOCKS = [
-            { id: '000660.KS', name: 'SK海力士' },
-            { id: '005930.KS', name: '三星电子' }
-        ];
+<div class="card" style="margin-top: 16px;">
+  <div style="font-weight:700; margin-bottom:12px;">市场板块分析</div>
+  <div class="heatmap-grid" id="heatmap"></div>
+</div>
 
-        async function loadStock(stock) {
-            try {
-                // 这里的路径必须和你的 api/stock.js 对应
-                const res = await fetch(`/api/stock?symbol=${stock.id}`);
-                const data = await res.json();
-                
-                const div = document.createElement('div');
-                div.className = 'card';
-                div.innerHTML = `
-                    <div class="stock-info">
-                        <div><small style="color:#8b949e">${stock.id}</small><br>${stock.name}</div>
-                        <div class="price">₩${data.price.toLocaleString()}</div>
-                    </div>
-                    <canvas id="chart-${stock.id.replace('.','-')}"></canvas>
-                `;
-                document.getElementById('container').appendChild(div);
+<script>
+const STOCKS = [
+  { id: '005930.KS', name: '三星电子' },
+  { id: '000660.KS', name: 'SK海力士' }
+];
 
-                new Chart(document.getElementById(`chart-${stock.id.replace('.','-')}`), {
-                    type: 'line',
-                    data: {
-                        labels: data.candles.map(c => c.t),
-                        datasets: [{
-                            data: data.candles.map(c => c.c),
-                            borderColor: '#00ff88',
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            fill: true,
-                            backgroundColor: 'rgba(0, 255, 136, 0.1)'
-                        }]
-                    },
-                    options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: '#30363d' } } } }
-                });
-            } catch (e) { console.log('数据加载失败', e); }
-        }
-        STOCKS.forEach(loadStock);
-    </script>
+const SECTORS = ['半导体', '人工智能', '新能源', '金融', '医疗', '消费'];
+
+function updateClock() {
+  document.getElementById('clock').innerText = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+}
+setInterval(updateClock, 1000);
+
+async function loadStock(stock) {
+  try {
+    const res = await fetch(`/api/stock?symbol=${stock.id}`);
+    const data = await res.json();
+    const isUp = data.candles[data.candles.length-1].c >= data.candles[0].c;
+    const color = isUp ? '#16a34a' : '#dc2626';
+    
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-header">
+        <div><div class="symbol">${data.symbol}</div><div class="name">${stock.name}</div></div>
+        <div class="price-box">
+          <div class="price" style="color:${color}">₩${data.price.toLocaleString()}</div>
+        </div>
+      </div>
+      <div class="chart-container"><canvas id="chart-${stock.id}"></canvas></div>
+    `;
+    document.getElementById('stockGrid').appendChild(card);
+
+    new Chart(document.getElementById(`chart-${stock.id}`), {
+      type: 'line',
+      data: {
+        labels: data.candles.map(c => c.t),
+        datasets: [{
+          data: data.candles.map(c => c.c),
+          borderColor: color,
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          backgroundColor: isUp ? 'rgba(22,163,74,0.05)' : 'rgba(220,38,38,0.05)',
+          tension: 0.4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { display: false }, y: { display: false } }
+      }
+    });
+  } catch (e) { console.error(e); }
+}
+
+function renderHeatmap() {
+  document.getElementById('heatmap').innerHTML = SECTORS.map(n => {
+    const val = (Math.random() * 4 - 2).toFixed(2);
+    const isUp = val >= 0;
+    const bg = isUp ? 'rgba(22,163,74,0.1)' : 'rgba(220,38,38,0.1)';
+    const color = isUp ? 'var(--up)' : 'var(--down)';
+    return `<div class="hcell" style="background:${bg}"><div class="hn" style="color:${color}">${n}</div><div class="hv" style="color:${color}">${isUp?'+':''}${val}%</div></div>`;
+  }).join('');
+}
+
+STOCKS.forEach(loadStock);
+renderHeatmap();
+</script>
 </body>
 </html>
