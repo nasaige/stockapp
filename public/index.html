@@ -17,164 +17,163 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:var(--sans); }
 
+/* 基础布局 */
 .app { display:grid; grid-template-columns:220px 1fr; grid-template-rows:54px 1fr; min-height:100vh; }
 
 .topbar { grid-column:1/-1; background:var(--white); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 20px; box-shadow:var(--shadow); z-index:10; }
 .brand { display:flex; align-items:center; gap:10px; }
 .brand-logo { width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; }
-.live-badge { background:var(--up-bg); border:1px solid var(--up-b); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:600; color:var(--up); }
-.clock { font-family:var(--mono); font-size:14px; color:var(--text2); }
 
 .sidebar { background:var(--white); border-right:1px solid var(--border); padding:16px 12px; overflow-y:auto; }
-.stock-item { display:flex; align-items:center; justify-content:space-between; padding:12px; border-radius:8px; cursor:pointer; margin-bottom:4px; transition: 0.2s; }
+.sidebar-section { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:1.5px; text-transform:uppercase; padding:8px 8px 12px; }
+.stock-item { display:flex; align-items:center; justify-content:space-between; padding:12px; border-radius:8px; cursor:pointer; margin-bottom:4px; transition: 0.2s; border: 1px solid transparent; }
 .stock-item:hover { background:var(--bg); }
-.stock-item.active { background:var(--accent-bg); border: 1px solid #bae6fd; }
+.stock-item.active { background:var(--accent-bg); border-color:#bae6fd; }
 .si-sym { font-family:var(--mono); font-size:13px; font-weight:600; }
 
 .main { overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:16px; }
 .card { background:var(--white); border:1px solid var(--border); border-radius:12px; padding:20px; box-shadow:var(--shadow); }
-.hero-price { font-family:var(--mono); font-size:42px; font-weight:600; margin:10px 0; }
-.hero-chg { font-family:var(--mono); font-size:16px; font-weight:600; padding:4px 8px; border-radius:4px; }
+
+.hero-price { font-family:var(--mono); font-size:42px; font-weight:600; margin:10px 0; letter-spacing: -1px; }
+.hero-chg { font-family:var(--mono); font-size:16px; font-weight:600; padding:4px 10px; border-radius:6px; display: inline-flex; align-items: center; gap: 4px; }
 .up { color:var(--up); } .dn { color:var(--down); }
-.up-bg { background:var(--up-bg); } .dn-bg { background:var(--down-bg); }
+.up-bg { background:var(--up-bg); border: 1px solid var(--up-b); } 
+.dn-bg { background:var(--down-bg); border: 1px solid var(--down-b); }
 
 .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
 .stat-box { background:var(--white); border:1px solid var(--border); border-radius:10px; padding:15px; }
-.stat-label { font-size:11px; color:var(--muted); margin-bottom:5px; }
+.stat-label { font-size:11px; color:var(--muted); margin-bottom:5px; font-weight:500; }
 .stat-val { font-family:var(--mono); font-size:18px; font-weight:600; }
 
 #candleChart { width:100% !important; height:300px !important; }
 
+/* 响应式：手机端 */
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { display:none; }
+  .app { grid-template-columns: 1fr; grid-template-rows: 54px auto 1fr; }
+  .sidebar { display:none; } /* 手机端隐藏侧边栏，通过其他方式切换或简化 */
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .hero-price { font-size: 32px; }
 }
+
+.loading-overlay { display: flex; align-items: center; justify-content: center; min-height: 200px; color: var(--muted); flex-direction: column; gap: 10px; }
+.spinner { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 <div class="app">
 <header class="topbar">
   <div class="brand"><div class="brand-logo">S</div><div><strong>StockView</strong><br><small style="color:var(--muted)">实时数据看板</small></div></div>
-  <div style="display:flex; align-items:center; gap:15px;">
-    <div id="status-tag" class="live-badge">连接正常</div>
-    <div class="clock" id="clock">00:00:00</div>
+  <div style="text-align: right">
+    <div id="clock" class="stat-val" style="font-size: 14px">00:00:00</div>
+    <div style="font-size: 10px; color: var(--muted)">Market Data Delayed</div>
   </div>
 </header>
 
 <aside class="sidebar">
-  <div style="font-size:11px; font-weight:700; color:var(--muted); margin-bottom:10px;">自选列表</div>
+  <div class="sidebar-section">自选列表</div>
   <div id="watchlist"></div>
 </aside>
 
 <main class="main">
   <div class="card" id="hero-area">
-    <div id="h-name" style="font-size:24px; font-weight:700;">加载中...</div>
-    <div id="h-sym" style="font-family:var(--mono); color:var(--muted);">--</div>
-    <div id="h-price" class="hero-price">0.00</div>
-    <span id="h-chg" class="hero-chg">--%</span>
+    <div class="loading-overlay"><div class="spinner"></div>正在连接 API...</div>
   </div>
 
   <div class="stats-grid">
     <div class="stat-box"><div class="stat-label">今日最高</div><div class="stat-val up" id="s-high">--</div></div>
     <div class="stat-box"><div class="stat-label">今日最低</div><div class="stat-val dn" id="s-low">--</div></div>
-    <div class="stat-box"><div class="stat-label">开盘价</div><div class="stat-val" id="s-open">--</div></div>
     <div class="stat-box"><div class="stat-label">成交量(万)</div><div class="stat-val" id="s-vol">--</div></div>
+    <div class="stat-box"><div class="stat-label">昨日收盘</div><div class="stat-val" id="s-prev">--</div></div>
   </div>
 
   <div class="card">
-    <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:15px;">K线图表</div>
+    <div style="font-size:12px; font-weight:700; color:var(--muted); margin-bottom:15px; display:flex; justify-content: space-between;">
+      <span>K线趋势 (3个月)</span>
+      <span id="currency-tag" style="font-family: var(--mono)">--</span>
+    </div>
     <canvas id="candleChart"></canvas>
   </div>
 </main>
 </div>
 
 <script>
-const STOCKS = {
-  '000660.KS': { name: 'SK 海力士', price: 185000 },
-  '005930.KS': { name: '三星电子', price: 73000 }
+// 配置股票名称映射
+const STOCK_MAP = {
+  '000660.KS': 'SK 海力士',
+  '005930.KS': '三星电子'
 };
 
 let activeSym = '000660.KS';
 let chart = null;
 
-// 1. 获取数据逻辑 (包含异常处理)
-async function getStockData(symbol) {
+// 获取数据 (对应你修改后的后端结构)
+async function fetchStockData(symbol) {
   try {
-    const response = await fetch(`/api/stock?symbol=${symbol}`);
-    if (!response.ok) throw new Error();
-    const data = await response.json();
-    document.getElementById('status-tag').innerText = "实时连接";
-    document.getElementById('status-tag').style.color = "var(--up)";
-    return data;
+    const res = await fetch(`/api/stock?symbol=${symbol}`);
+    if (!res.ok) throw new Error('网络请求失败');
+    return await res.json();
   } catch (e) {
-    // 如果 API 失败，生成模拟数据展示
-    console.warn("API连接失败，使用模拟数据展示");
-    document.getElementById('status-tag').innerText = "演示模式";
-    document.getElementById('status-tag').style.color = "orange";
-    
-    const basePrice = STOCKS[symbol].price;
-    const candles = [];
-    for(let i=0; i<30; i++) {
-      const o = basePrice + Math.random()*2000 - 1000;
-      candles.push({ t: i, o: o, c: o + Math.random()*1000 - 500, h: o+600, l: o-600, v: Math.random()*500 });
-    }
-    return {
-      symbol: symbol,
-      price: candles[29].c,
-      prevClose: basePrice,
-      open: candles[29].o,
-      high: candles[29].h,
-      low: candles[29].l,
-      volume: 450,
-      candles: candles
-    };
+    console.error(e);
+    return null;
   }
 }
 
-// 2. 渲染页面
-async function refresh(sym) {
-  activeSym = sym;
+// 渲染主面板
+async function updateUI(symbol) {
+  activeSym = symbol;
   renderWatchlist();
-  const d = await getStockData(sym);
   
-  const chg = d.price - d.prevClose;
-  const pct = (chg / d.prevClose * 100).toFixed(2);
+  const data = await fetchStockData(symbol);
+  const container = document.getElementById('hero-area');
   
-  document.getElementById('h-name').innerText = STOCKS[sym].name;
-  document.getElementById('h-sym').innerText = d.symbol;
-  document.getElementById('h-price').innerText = '₩' + Math.round(d.price).toLocaleString();
-  
-  const elChg = document.getElementById('h-chg');
-  elChg.innerText = (pct >= 0 ? '+' : '') + pct + '%';
-  elChg.className = 'hero-chg ' + (pct >= 0 ? 'up-bg up' : 'dn-bg dn');
+  if (!data || data.error) {
+    container.innerHTML = `<div class="loading-overlay" style="color:var(--down)">⚠️ 接口返回错误: ${data?.error || '无法连接'}</div>`;
+    return;
+  }
 
-  document.getElementById('s-high').innerText = '₩' + Math.round(d.high).toLocaleString();
-  document.getElementById('s-low').innerText = '₩' + Math.round(d.low).toLocaleString();
-  document.getElementById('s-open').innerText = '₩' + Math.round(d.open).toLocaleString();
-  document.getElementById('s-vol').innerText = d.volume;
+  // 计算涨跌
+  const diff = data.price - data.prevClose;
+  const pct = ((diff / data.prevClose) * 100).toFixed(2);
+  const isUp = diff >= 0;
 
-  drawChart(d.candles);
+  // 更新 Hero Card
+  container.innerHTML = `
+    <div style="font-size:24px; font-weight:700;">${STOCK_MAP[symbol] || symbol}</div>
+    <div style="font-family:var(--mono); color:var(--muted); font-size: 13px;">${data.symbol} · REAL-TIME</div>
+    <div class="hero-price">₩${data.price.toLocaleString()}</div>
+    <div class="hero-chg ${isUp ? 'up-bg up' : 'dn-bg dn'}">
+      ${isUp ? '▲' : '▼'} ${isUp ? '+' : ''}${diff.toLocaleString()} (${pct}%)
+    </div>
+  `;
+
+  // 更新统计栏
+  document.getElementById('s-high').innerText = '₩' + data.high.toLocaleString();
+  document.getElementById('s-low').innerText = '₩' + data.low.toLocaleString();
+  document.getElementById('s-vol').innerText = data.volume.toLocaleString();
+  document.getElementById('s-prev').innerText = '₩' + data.prevClose.toLocaleString();
+  document.getElementById('currency-tag').innerText = data.currency;
+
+  renderChart(data.candles);
 }
 
-// 3. 绘制简易K线
-function drawChart(candles) {
+// 绘制图表 (使用 API 返回的 candles 数组)
+function renderChart(candles) {
   const ctx = document.getElementById('candleChart').getContext('2d');
   if (chart) chart.destroy();
-  
+
   chart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: candles.map(c => c.t),
       datasets: [{
-        label: '收盘价',
         data: candles.map(c => c.c),
         borderColor: '#0ea5e9',
         borderWidth: 2,
         pointRadius: 0,
-        tension: 0.1,
         fill: true,
-        backgroundColor: 'rgba(14, 165, 233, 0.05)'
+        backgroundColor: 'rgba(14, 165, 233, 0.05)',
+        tension: 0.1
       }]
     },
     options: {
@@ -182,25 +181,32 @@ function drawChart(candles) {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false } },
+        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6 } },
         y: { position: 'right', grid: { color: '#f1f5f9' } }
       }
     }
   });
 }
 
+// 侧边栏列表
 function renderWatchlist() {
   const el = document.getElementById('watchlist');
-  el.innerHTML = Object.keys(STOCKS).map(s => `
-    <div class="stock-item ${s === activeSym ? 'active' : ''}" onclick="refresh('${s}')">
-      <div class="si-sym"><strong>${s.split('.')[0]}</strong><br><small style="color:var(--muted)">${STOCKS[s].name}</small></div>
+  el.innerHTML = Object.keys(STOCK_MAP).map(s => `
+    <div class="stock-item ${s === activeSym ? 'active' : ''}" onclick="updateUI('${s}')">
+      <div class="si-sym">
+        <strong>${s.split('.')[0]}</strong><br>
+        <small style="color:var(--muted)">${STOCK_MAP[s]}</small>
+      </div>
     </div>
   `).join('');
 }
 
-// 初始化
-setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
-refresh(activeSym);
+// 启动
+setInterval(() => { 
+  document.getElementById('clock').innerText = new Date().toLocaleTimeString('zh-CN', {hour12: false}); 
+}, 1000);
+
+updateUI(activeSym);
 </script>
 </body>
 </html>
