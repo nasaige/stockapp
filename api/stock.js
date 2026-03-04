@@ -4,51 +4,46 @@ export default async function handler(req, res) {
   const { symbol } = req.query;
   if (!symbol) return res.status(400).json({ error: 'symbol required' });
 
+  const API_KEY = 'v9TuvhgAWyILDWb26E2GpbBQPLDFmd8k';
+
   try {
-    // 使用 finnhub 免费API（无需注册，有限额）
-    // 先尝试 Yahoo Finance 备用域名
-    const urls = [
-      `https://query2.finance.yahoo.com/v7/finance/options/${symbol}`,
-      `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`,
-    ];
+    const quoteRes = await fetch(
+      `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`
+    );
+    const quoteData = await quoteRes.json();
+    const q = quoteData['Global Quote'];
+    if (!q || !q['05. price']) throw new Error('No quote data');
 
-    // 用 allorigins 代理绕过限制
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-      `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=3mo`
-    )}`;
+    const histRes = await fetch(
+      `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&outputsize=compact&apikey=${API_KEY}`
+    );
+    const histData = await histRes.json();
+    const series = histData['Time Series (Daily)'] || {};
 
-    const response = await fetch(proxyUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
+    const candles = Object.entries(series)
+      .slice(0, 60)
+      .reverse()
+      .map(([date, v]) => ({
+        t: date.slice(5),
+        o: +parseFloat(v['1. open']).toFixed(0),
+        h: +parseFloat(v['2. high']).toFixed(0),
+        l: +parseFloat(v['3. low']).toFixed(0),
+        c: +parseFloat(v['4. close']).toFixed(0),
+        v: Math.round(parseInt(v['5. volume']) / 10000),
+      }));
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-
-    if (!data.chart?.result?.[0]) throw new Error('No data');
-
-    const result = data.chart.result[0];
-    const meta = result.meta;
-    const quotes = result.indicators.quote[0];
-    const timestamps = result.timestamp || [];
-
-    const candles = timestamps.map((t, i) => ({
-      t: new Date(t * 1000).toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' }),
-      o: +( quotes.open[i] || 0).toFixed(0),
-      h: +( quotes.high[i] || 0).toFixed(0),
-      l: +( quotes.low[i] || 0).toFixed(0),
-      c: +( quotes.close[i] || 0).toFixed(0),
-      v: Math.round((quotes.volume[i] || 0) / 10000),
-    })).filter(c => c.c > 0);
+    const price = parseFloat(q['05. price']);
+    const prevClose = parseFloat(q['08. previous close']);
 
     res.status(200).json({
-      symbol: meta.symbol,
-      price: +meta.regularMarketPrice.toFixed(0),
-      open: +(meta.regularMarketOpen || 0).toFixed(0),
-      high: +(meta.regularMarketDayHigh || 0).toFixed(0),
-      low: +(meta.regularMarketDayLow || 0).toFixed(0),
-      prevClose: +(meta.chartPreviousClose || meta.previousClose || 0).toFixed(0),
-      volume: Math.round((meta.regularMarketVolume || 0) / 10000),
-      currency: meta.currency,
+      symbol: q['01. symbol'],
+      price: +price.toFixed(2),
+      open: +parseFloat(q['02. open']).toFixed(2),
+      high: +parseFloat(q['03. high']).toFixed(2),
+      low: +parseFloat(q['04. low']).toFixed(2),
+      prevClose: +prevClose.toFixed(2),
+      volume: Math.round(parseInt(q['06. volume']) / 10000),
+      currency: symbol.includes('.KS') ? 'KRW' : 'USD',
       candles,
     });
 
