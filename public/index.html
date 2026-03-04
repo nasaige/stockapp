@@ -283,6 +283,8 @@ function renderCandles(){
 
   const ctx = document.getElementById('candleChart').getContext('2d');
   const vctx = document.getElementById('volChart').getContext('2d');
+  const g = ctx.createLinearGradient(0,0,0,240);
+  g.addColorStop(0,'rgba(14,165,233,0.1)'); g.addColorStop(1,'rgba(14,165,233,0)');
 
   candleChart = new Chart(ctx,{
     type:'line',
@@ -318,9 +320,9 @@ async function renderWatchlist(){
     const chg = d ? d.price-d.prevClose : 0;
     const pct = d ? chg/d.prevClose*100 : 0;
     const cls = pct>=0?'up':'dn'; const sign=pct>=0?'+':''; const arrow=pct>=0?'▲':'▼';
-    const isActive = sym===active;
+    const active_item = sym===active_sym?'active':'';
     const div = document.createElement('div');
-    div.className = `stock-item ${isActive?'active':''}`;
+    div.className = `stock-item ${sym===active_item?'active':''}`;
     div.onclick = ()=>selectStock(sym);
     div.innerHTML = `<div><div class="si-sym">${STOCKS[sym].short}</div><div class="si-name">${STOCKS[sym].name}</div></div>
       <div><div class="si-price">${d?'₩'+d.price.toLocaleString():'--'}</div><div class="si-chg ${cls}">${d?arrow+sign+pct.toFixed(2)+'%':'--'}</div></div>`;
@@ -373,12 +375,14 @@ function renderHeatmap(){
 }
 
 // ── INIT ───────────────────────────────────────────────────────────
+let active_sym = active;
 async function init(){
   await renderWatchlist();
   await renderHero(active);
   await renderOtherStocks();
   renderHeatmap();
   setInterval(renderHeatmap, 5000);
+  // refresh real data every 5 minutes
   setInterval(async()=>{
     cache = {};
     await renderWatchlist();
