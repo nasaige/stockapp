@@ -1,4 +1,4 @@
-const CACHE_NAME = 'english-learning-pro-clickfix-20260520';
+const CACHE_NAME = 'english-learning-pro-back-ipa-20260520';
 const ASSETS = [
   './',
   './index.html',
