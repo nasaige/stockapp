@@ -16,16 +16,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - name: Build customized Qwerty Learner site
         run: node scripts/build-qwerty-english-app.cjs
-      - name: Commit generated site
+      - name: Publish generated site to gh-pages
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin gh-pages
+          git worktree add ../gh-pages gh-pages
+          rm -rf ../gh-pages/english-ios-app
+          cp -R english-ios-app ../gh-pages/english-ios-app
+          cd ../gh-pages
           git add english-ios-app
           git diff --cached --quiet && exit 0
           git commit -m "Deploy customized qwerty learner app"
-          git push
+          git push origin gh-pages
