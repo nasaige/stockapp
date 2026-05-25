@@ -37,6 +37,7 @@ replace('src/index.tsx', "import { BrowserRouter, Navigate, Route, Routes } from
 replace('src/index.tsx', "<BrowserRouter basename={REACT_APP_DEPLOY_ENV === 'pages' ? '/qwerty-learner' : ''}>", '<HashRouter>')
 replace('src/index.tsx', '</BrowserRouter>', '</HashRouter>')
 replace('src/store/index.ts', "export const currentDictIdAtom = atomWithStorage('currentDict', 'cet4')", "export const currentDictIdAtom = atomWithStorage('currentDict', 'logistics-cross-border-ecommerce')")
+replace('src/resources/dictionary.ts', /url: '\/dicts\//g, "url: './dicts/")
 
 replace(
   'src/resources/dictionary.ts',
@@ -48,7 +49,7 @@ replace(
     description: 'Work vocabulary for logistics, customs, warehouse, fulfillment, and ecommerce',
     category: 'Work English',
     tags: ['logistics', 'cross-border ecommerce', 'work English'],
-    url: '/dicts/logistics_cross_border_ecommerce.json',
+    url: './dicts/logistics_cross_border_ecommerce.json',
     length: ${logisticsWords.length},
     language: 'en',
     languageCategory: 'en',
