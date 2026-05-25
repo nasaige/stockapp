@@ -34,8 +34,52 @@ write(path.join(qwerty, 'public/dicts/logistics_cross_border_ecommerce.json'), J
 
 replace('vite.config.ts', "return getLastCommit((err, commit) => (err ? 'unknown' : resolve(commit.shortHash)))", "return getLastCommit((err, commit) => resolve(err ? 'unknown' : commit.shortHash))")
 replace('src/index.tsx', "import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'", "import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'")
+replace('src/index.tsx', "import MobilePage from './pages/Mobile'\n", '')
 replace('src/index.tsx', "<BrowserRouter basename={REACT_APP_DEPLOY_ENV === 'pages' ? '/qwerty-learner' : ''}>", '<HashRouter>')
 replace('src/index.tsx', '</BrowserRouter>', '</HashRouter>')
+replace(
+  'src/index.tsx',
+  `  const [isMobile, setIsMobile] = useState(window.innerWidth <= 600)
+
+  useEffect(() => {
+    const handleResize = () => {
+      const isMobile = window.innerWidth <= 600
+      if (!isMobile) {
+        window.location.href = '/'
+      }
+      setIsMobile(isMobile)
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+`,
+  '',
+)
+replace('src/index.tsx', ", lazy, useEffect, useState } from 'react'", ", lazy, useEffect } from 'react'")
+replace(
+  'src/index.tsx',
+  `            {isMobile ? (
+              <Route path="/*" element={<Navigate to="/mobile" />} />
+            ) : (
+              <>
+                <Route index element={<TypingPage />} />
+                <Route path="/gallery" element={<GalleryPage />} />
+                <Route path="/analysis" element={<AnalysisPage />} />
+                <Route path="/error-book" element={<ErrorBook />} />
+                <Route path="/friend-links" element={<FriendLinks />} />
+                <Route path="/*" element={<Navigate to="/" />} />
+              </>
+            )}
+            <Route path="/mobile" element={<MobilePage />} />`,
+  `            <Route index element={<TypingPage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/analysis" element={<AnalysisPage />} />
+            <Route path="/error-book" element={<ErrorBook />} />
+            <Route path="/friend-links" element={<FriendLinks />} />
+            <Route path="/*" element={<Navigate to="/" />} />`,
+)
 replace('src/store/index.ts', "export const currentDictIdAtom = atomWithStorage('currentDict', 'cet4')", "export const currentDictIdAtom = atomWithStorage('currentDict', 'logistics-cross-border-ecommerce')")
 replace('src/resources/dictionary.ts', /url: '\/dicts\//g, "url: './dicts/")
 
