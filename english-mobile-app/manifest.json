@@ -1,9 +1,9 @@
 {
-  "name": "英语词库手机练习",
-  "short_name": "英语词库",
+  "name": "Qwerty Learner 手机练习版",
+  "short_name": "Qwerty",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f6f7f2",
-  "theme_color": "#0f172a",
+  "background_color": "#111827",
+  "theme_color": "#818CF8",
   "icons": []
 }
