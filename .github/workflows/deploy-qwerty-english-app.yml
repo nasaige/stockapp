@@ -21,14 +21,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Build full customized Qwerty Learner site
+      - name: Build original Qwerty Learner site
         run: node scripts/build-qwerty-english-app.cjs
       - name: Commit generated site to main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add english-ios-app
-          git diff --cached --quiet || git commit -m "Deploy full customized qwerty learner app"
+          git diff --cached --quiet || git commit -m "Deploy original qwerty learner app"
+          git pull --rebase origin main
           git push origin main
       - name: Publish generated site to gh-pages
         run: |
@@ -39,5 +40,6 @@ jobs:
           cd ../gh-pages
           git add english-ios-app
           git diff --cached --quiet && exit 0
-          git commit -m "Deploy full customized qwerty learner app"
+          git commit -m "Deploy original qwerty learner app"
+          git pull --rebase origin gh-pages
           git push origin gh-pages
