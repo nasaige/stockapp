@@ -28,6 +28,40 @@ fs.rmSync(work, { recursive: true, force: true })
 fs.mkdirSync(work, { recursive: true })
 run('git', ['clone', '--depth=1', 'https://github.com/RealKai42/qwerty-learner.git', qwerty])
 
+write(
+  path.join(qwerty, 'src/components/Header/index.tsx'),
+  `import logo from '@/assets/logo.svg'
+import type { PropsWithChildren } from 'react'
+import type React from 'react'
+
+const Header: React.FC<PropsWithChildren> = ({ children }) => {
+  return (
+    <header className="container z-20 mx-auto w-full px-10 py-6">
+      <div className="flex w-full flex-col items-center justify-between space-y-3 lg:flex-row lg:space-y-0">
+        <div className="qwerty-local-title flex items-center text-2xl font-bold text-indigo-500 no-underline lg:text-4xl">
+          <img src={logo} className="mr-3 h-16 w-16" alt="Qwerty Learner Logo" />
+          <h1>Qwerty Learner</h1>
+        </div>
+        <nav className="my-card on element flex w-auto content-center items-center justify-end space-x-3 rounded-xl bg-white p-4 transition-colors duration-300 dark:bg-gray-800">
+          {children}
+        </nav>
+      </div>
+    </header>
+  )
+}
+
+export default Header
+`,
+)
+
+write(
+  path.join(qwerty, 'src/components/Footer/index.tsx'),
+  `const Footer = () => null
+
+export default Footer
+`,
+)
+
 replace(
   'vite.config.ts',
   "return getLastCommit((err, commit) => (err ? 'unknown' : resolve(commit.shortHash)))",
@@ -105,11 +139,42 @@ replace(
   '<div className="container qwerty-mobile-practice mx-auto flex h-full flex-1 flex-col items-center justify-center pb-5">',
 )
 replace(
+  'src/pages/Typing/index.tsx',
+  `  const skipWord = useCallback(() => {
+    dispatch({ type: TypingStateActionType.SKIP_WORD })
+  }, [dispatch])
+`,
+  `  const focusMobileKeyboard = useCallback(() => {
+    dispatch({ type: TypingStateActionType.SET_IS_TYPING, payload: true })
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus()
+    })
+    window.setTimeout(() => {
+      document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus()
+    }, 80)
+  }, [dispatch])
+
+  const skipWord = useCallback(() => {
+    dispatch({ type: TypingStateActionType.SKIP_WORD })
+  }, [dispatch])
+`,
+)
+replace(
+  'src/pages/Typing/index.tsx',
+  `          <StartButton isLoading={isLoading} />
+          <Tooltip content="跳过该词">`,
+  `          <StartButton isLoading={isLoading} />
+          <button type="button" className="qwerty-mobile-keyboard-button my-btn-primary hidden" onClick={focusMobileKeyboard}>
+            打开键盘
+          </button>
+          <Tooltip content="跳过该词">`,
+)
+replace(
   'src/pages/Typing/components/WordPanel/components/InputHandler/index.tsx',
   `  const handler = useMemo(() => {
     switch (dictInfo.language) {`,
   `  const handler = useMemo(() => {
-    if (typeof window !== 'undefined' && window.innerWidth <= 640) {
+    if (typeof window !== 'undefined' && window.innerWidth <= 1024) {
       return <TextAreaHandler updateInput={updateInput} />
     }
 
@@ -121,13 +186,13 @@ replace(
   `  const startTypingByTouch = useCallback(() => {
     if (!state.isTyping) {
       dispatch({ type: TypingStateActionType.SET_IS_TYPING, payload: true })
-      requestAnimationFrame(() => {
-        document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus()
-      })
-      window.setTimeout(() => {
-        document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus()
-      }, 80)
     }
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus()
+    })
+    window.setTimeout(() => {
+      document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus()
+    }, 80)
   }, [dispatch, state.isTyping])
 
   const [isShowTranslation, setIsHoveringTranslation] = useState(false)`,
@@ -140,7 +205,7 @@ replace(
 replace(
   'src/pages/Typing/components/WordPanel/index.tsx',
   '按任意键{state.timerData.time ? \'继续\' : \'开始\'}',
-  "{window.innerWidth <= 640 ? '点屏幕或下方输入框' : '按任意键'}{state.timerData.time ? '继续' : '开始'}",
+  "{window.innerWidth <= 1024 ? '点屏幕或打开键盘' : '按任意键'}{state.timerData.time ? '继续' : '开始'}",
 )
 replace(
   'src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx',
@@ -180,7 +245,7 @@ replace(
 replace(
   'src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx',
   '      className="absolute left-0 top-0 m-0 h-0 w-0 appearance-none overflow-hidden border-0 p-0 focus:outline-none"',
-  '      className="absolute left-0 top-0 m-0 h-0 w-0 appearance-none overflow-hidden border-0 p-0 focus:outline-none max-sm:fixed max-sm:bottom-[calc(env(safe-area-inset-bottom)+10px)] max-sm:left-4 max-sm:z-[9999] max-sm:h-12 max-sm:w-[calc(100vw-2rem)] max-sm:rounded-xl max-sm:border max-sm:border-indigo-300 max-sm:bg-white/90 max-sm:px-3 max-sm:text-base max-sm:text-transparent max-sm:caret-indigo-500 max-sm:shadow-lg dark:max-sm:bg-gray-900/90"',
+  '      className="absolute left-0 top-0 m-0 h-0 w-0 appearance-none overflow-hidden border-0 p-0 focus:outline-none max-lg:fixed max-lg:bottom-[calc(env(safe-area-inset-bottom)+10px)] max-lg:left-4 max-lg:z-[9999] max-lg:h-12 max-lg:w-[calc(100vw-2rem)] max-lg:rounded-xl max-lg:border max-lg:border-indigo-300 max-lg:bg-white/90 max-lg:px-3 max-lg:text-base max-lg:text-transparent max-lg:caret-indigo-500 max-lg:shadow-lg dark:max-lg:bg-gray-900/90"',
 )
 replace(
   'src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx',
@@ -210,95 +275,200 @@ replace(
 
 write(
   path.join(qwerty, 'src/mobile-practice.css'),
-  `@media (max-width: 640px) {
+  `@media (max-width: 1024px) {
   html, body, #root {
-    min-height: 100%;
+    height: 100%;
     width: 100%;
+    max-width: 100%;
+    overflow: hidden;
     overflow-x: hidden;
   }
 
   body {
     touch-action: manipulation;
+    overscroll-behavior: none;
   }
 
   main.flex.h-screen {
-    min-height: 100dvh;
-    height: 100dvh;
-    padding-bottom: calc(env(safe-area-inset-bottom) + 4rem);
+    height: 100svh !important;
+    min-height: 100svh !important;
+    max-height: 100svh !important;
+    overflow: hidden;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 3.75rem) !important;
   }
 
   header.container {
-    padding: 0.75rem 0.75rem 0.5rem !important;
+    flex: 0 0 auto;
+    padding: 0.55rem 0.6rem 0.35rem !important;
   }
 
   header.container > div {
-    gap: 0.625rem;
+    gap: 0.45rem;
+    width: 100%;
   }
 
-  header a {
-    font-size: 1.85rem !important;
+  .qwerty-local-title {
+    font-size: clamp(1.2rem, 7vw, 2rem) !important;
     line-height: 1.1 !important;
     justify-content: center;
+    max-width: 100%;
+    white-space: nowrap;
   }
 
-  header a img {
-    width: 3.25rem !important;
-    height: 3.25rem !important;
+  .qwerty-local-title img {
+    width: clamp(2.25rem, 12vw, 3.1rem) !important;
+    height: clamp(2.25rem, 12vw, 3.1rem) !important;
+    margin-right: 0.55rem !important;
   }
 
   header nav {
     width: 100% !important;
     max-width: 100%;
-    overflow-x: auto;
-    justify-content: flex-start !important;
-    padding: 0.75rem !important;
-    border-radius: 0.875rem !important;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
+    justify-content: center !important;
+    gap: 0.35rem;
+    padding: 0.45rem !important;
+    border-radius: 0.75rem !important;
+    flex-wrap: wrap;
+    row-gap: 0.35rem;
+  }
+
+  header nav .space-x-3 > :not([hidden]) ~ :not([hidden]),
+  header nav > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 0 !important;
   }
 
   header nav > * {
     flex: 0 0 auto;
   }
 
+  header nav button,
+  header nav a {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+  }
+
+  .qwerty-mobile-keyboard-button {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 5rem !important;
+    height: 2.25rem !important;
+    padding: 0 0.75rem !important;
+    font-size: 0.875rem !important;
+    white-space: nowrap;
+  }
+
   .qwerty-mobile-practice {
+    flex: 1 1 auto;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden;
     padding-left: 0.5rem !important;
     padding-right: 0.5rem !important;
     padding-bottom: 0 !important;
     justify-content: flex-start !important;
   }
 
+  .qwerty-mobile-practice > div,
+  .qwerty-mobile-practice > div > div {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden;
+  }
+
   .qwerty-mobile-word-panel {
-    min-height: 52dvh;
-    justify-content: flex-start !important;
-    padding-top: 0.5rem;
+    height: 100% !important;
+    min-height: 0 !important;
+    justify-content: space-between !important;
+    padding-top: 0.2rem;
+    overflow: hidden;
   }
 
   .qwerty-mobile-word-panel > div:first-child {
-    height: 2.5rem !important;
+    height: 1.75rem !important;
     padding-left: 0.75rem !important;
     padding-right: 0.75rem !important;
-    padding-top: 0.5rem !important;
+    padding-top: 0.15rem !important;
   }
 
   .qwerty-mobile-word-panel > div:nth-child(2) {
-    flex-grow: 0 !important;
-    min-height: 19rem;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: 100%;
     justify-content: center !important;
+    overflow: hidden;
   }
 
   .qwerty-mobile-word-panel p {
-    font-size: 1rem;
+    font-size: clamp(0.9rem, 3.8vw, 1.15rem);
   }
 
   .qwerty-mobile-word-panel [class*="text-7xl"],
   .qwerty-mobile-word-panel [class*="text-8xl"],
   .qwerty-mobile-word-panel [class*="text-9xl"] {
-    font-size: clamp(2.8rem, 16vw, 4.6rem) !important;
+    font-size: clamp(2.25rem, 15vw, 4.8rem) !important;
     line-height: 1.05 !important;
+  }
+
+  .qwerty-mobile-word-panel [class*="backdrop-blur"] {
+    backdrop-filter: blur(4px);
+  }
+
+  .qwerty-mobile-word-panel + div,
+  .qwerty-mobile-practice [class*="shadow"] {
+    max-width: min(100%, 36rem);
   }
 
   footer {
     display: none !important;
+  }
+}
+
+@media (max-width: 1024px) and (orientation: landscape) {
+  main.flex.h-screen {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 3.25rem) !important;
+  }
+
+  header.container {
+    padding: 0.25rem 0.5rem !important;
+  }
+
+  header.container > div {
+    flex-direction: row !important;
+    gap: 0.5rem;
+  }
+
+  .qwerty-local-title {
+    font-size: 1.15rem !important;
+  }
+
+  .qwerty-local-title img {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+
+  header nav {
+    width: auto !important;
+    flex: 1 1 auto;
+    padding: 0.3rem !important;
+  }
+
+  header nav button,
+  header nav a,
+  .qwerty-mobile-keyboard-button {
+    min-height: 2rem !important;
+    height: 2rem !important;
+  }
+
+  .qwerty-mobile-word-panel > div:first-child {
+    display: none !important;
+  }
+
+  .qwerty-mobile-word-panel [class*="text-7xl"],
+  .qwerty-mobile-word-panel [class*="text-8xl"],
+  .qwerty-mobile-word-panel [class*="text-9xl"] {
+    font-size: clamp(2rem, 10vw, 3.4rem) !important;
   }
 }
 `,
