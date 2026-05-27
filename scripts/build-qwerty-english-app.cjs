@@ -63,7 +63,7 @@ replace('src/index.tsx', "import { FriendLinks } from './pages/FriendLinks'\n", 
 replace('src/index.tsx', "import './index.css'", "import './index.css'\nimport './mobile-practice.css'")
 replace('src/index.tsx', "<BrowserRouter basename={REACT_APP_DEPLOY_ENV === 'pages' ? '/qwerty-learner' : ''}>", '<HashRouter>')
 replace('src/index.tsx', '</BrowserRouter>', '</HashRouter>')
-replace('src/index.tsx', /  const \[isMobile, setIsMobile\][\s\S]*?  }, \[\])\n\n/, '')
+replace('src/index.tsx', /  const \[isMobile, setIsMobile\][\s\S]*?  }, \[\]\)\n\n/, '')
 replace('src/index.tsx', ", lazy, useEffect, useState } from 'react'", ", lazy, useEffect } from 'react'")
 replace('src/index.tsx', /\s*\{isMobile \? \([\s\S]*?<Route path="\/mobile" element=\{<MobilePage \/>\} \/>/, `
             <Route index element={<TypingPage />} />
