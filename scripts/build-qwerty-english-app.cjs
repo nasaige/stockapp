@@ -105,6 +105,17 @@ replace(
   '<div className="container qwerty-mobile-practice mx-auto flex h-full flex-1 flex-col items-center justify-center pb-5">',
 )
 replace(
+  'src/pages/Typing/components/WordPanel/components/InputHandler/index.tsx',
+  `  const handler = useMemo(() => {
+    switch (dictInfo.language) {`,
+  `  const handler = useMemo(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 640) {
+      return <TextAreaHandler updateInput={updateInput} />
+    }
+
+    switch (dictInfo.language) {`,
+)
+replace(
   'src/pages/Typing/components/WordPanel/index.tsx',
   '  const [isShowTranslation, setIsHoveringTranslation] = useState(false)',
   `  const startTypingByTouch = useCallback(() => {
