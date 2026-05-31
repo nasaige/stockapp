@@ -1,4 +1,4 @@
-const fs = require('fs')
+﻿const fs = require('fs')
 const path = require('path')
 const { execFileSync } = require('child_process')
 
@@ -38,11 +38,249 @@ write(path.join(qwerty, 'src/components/Footer/index.tsx'), `const Footer = () =
 export default Footer
 `)
 
+write(path.join(qwerty, 'src/pages/Ipa/index.tsx'), `import { useMemo, useState } from 'react'
+
+type IpaItem = {
+  symbol: string
+  group: string
+  category: string
+  kind: 'vowel' | 'consonant'
+  color: 'green' | 'orange' | 'blue' | 'purple'
+  sound: string
+  tips: string[]
+  near?: string
+  examples: { word: string; ipa: string }[]
+}
+
+type VowelGroup = { category: string; color: 'green' | 'orange'; items: [string, string, string[], string][] }
+type ConsonantGroup = { category: string; color: 'blue' | 'purple'; items: [string, string][] }
+
+const vowelGroups: VowelGroup[] = [
+  { category: '前元音', color: 'green' as const, items: [
+    ['æ', 'apple', ['嘴巴张大，舌尖抵下齿，发短促的 /æ/。', '像汉语“爱”的前半段，但不要拖长。'], '/e/'],
+    ['e', 'egg', ['嘴型比 /æ/ 小，声音短而清楚。', '舌位靠前，嘴角自然展开。'], '/æ/'],
+    ['i:', 'see', ['嘴角向两边拉开，声音要拉长。', '舌位高而靠前，保持稳定。'], '/ɪ/'],
+    ['ɪ', 'sit', ['短促放松，不要读成中文“一”。', '嘴型比 /i:/ 更松。'], '/i:/'],
+    ['i', 'happy', ['常出现在词尾，轻而短。', '保持清晰，不要太用力。'], '/i:/'],
+  ] },
+  { category: '中元音', color: 'green' as const, items: [
+    ['ə', 'about', ['最常见的弱读音，嘴巴放松。', '声音短轻，不需要重读。'], '/ʌ/'],
+    ['ʌ', 'cup', ['嘴巴微张，声音短促有力。', '舌头居中，不要卷舌。'], '/ɑ:/'],
+  ] },
+  { category: '后元音', color: 'green' as const, items: [
+    ['ɑ:', 'father', ['嘴巴打开，舌头后缩，声音拉长。', '美音里常见于 father, calm。'], '/ʌ/'],
+    ['ɔ:', 'law', ['嘴唇略圆，声音拉长。', '注意不要读得太扁。'], '/ɑ:/'],
+    ['u:', 'blue', ['嘴唇收圆，声音拉长。', '舌位高而靠后。'], '/ʊ/'],
+    ['ʊ', 'book', ['短促放松，嘴唇略圆。', '不要读成长音 /u:/。'], '/u:/'],
+    ['u', 'actual', ['轻读时出现，短而清楚。', '注意不要过度拖长。'], '/ʊ/'],
+  ] },
+  { category: '开合双元音', color: 'orange' as const, items: [
+    ['aʊ', 'now', ['从 /a/ 滑向 /ʊ/，口型由大到小。', '两个音连成一个滑动。'], '/oʊ/'],
+    ['aɪ', 'like', ['从 /a/ 滑向 /ɪ/，结尾轻收。', '不要拆成两个独立音。'], '/eɪ/'],
+    ['eɪ', 'day', ['从 /e/ 滑向 /ɪ/，声音自然上扬。', '常见于 a, ai, ay。'], '/aɪ/'],
+    ['oʊ', 'go', ['嘴唇从半圆到更圆，声音滑动。', '美音常用 /oʊ/。'], '/ɔ:/'],
+    ['ɔɪ', 'boy', ['从 /ɔ/ 滑向 /ɪ/，嘴型先圆后扁。', '保持一个整体音。'], '/aɪ/'],
+  ] },
+  { category: '儿化元音', color: 'orange' as const, items: [
+    ['ɑ:r', 'car', ['先发 /ɑ:/，结尾带美音 r。', '舌尖不要碰上颚。'], '/ɑ:/'],
+    ['er', 'air', ['嘴型放松，结尾带 r 色彩。', '常见于 air, care。'], '/e/'],
+    ['ər', 'teacher', ['弱读加 r，轻而短。', '常出现在词尾 -er。'], '/ɜ:r/'],
+    ['ɔ:r', 'more', ['圆唇长音后带 r。', '常见于 or, ore。'], '/ɔ:/'],
+    ['ɜ:r', 'bird', ['舌头居中并卷向 r 色彩。', '美音中很重要。'], '/ər/'],
+    ['ɪr', 'near', ['先短 /ɪ/，再带 r。', '注意不要读成 /i:/。'], '/i:/'],
+    ['ʊr', 'tour', ['先短 /ʊ/，再带 r。', '嘴唇轻圆。'], '/u:/'],
+  ] },
+]
+
+const consonantGroups: ConsonantGroup[] = [
+  { category: '爆破音', color: 'blue' as const, items: [['b', 'book'], ['d', 'day'], ['g', 'go'], ['k', 'key'], ['p', 'pen'], ['t', 'tea']] },
+  { category: '摩擦音', color: 'blue' as const, items: [['f', 'fish'], ['v', 'very'], ['θ', 'think'], ['ð', 'this'], ['s', 'see'], ['z', 'zoo'], ['ʃ', 'she'], ['ʒ', 'vision'], ['h', 'home'], ['r', 'red']] },
+  { category: '破擦音', color: 'purple' as const, items: [['tʃ', 'chair'], ['dʒ', 'job'], ['tr', 'tree'], ['dr', 'drive'], ['ts', 'cats'], ['dz', 'beds']] },
+  { category: '鼻音', color: 'purple' as const, items: [['m', 'man'], ['n', 'name'], ['ŋ', 'sing']] },
+  { category: '舌侧音', color: 'purple' as const, items: [['l', 'love']] },
+  { category: '半元音', color: 'purple' as const, items: [['w', 'we'], ['j', 'yes']] },
+]
+
+function makeConsonant(symbol: string, word: string, category: string, color: 'blue' | 'purple'): IpaItem {
+  return {
+    symbol,
+    group: category,
+    category,
+    kind: 'consonant',
+    color,
+    sound: word,
+    tips: ['辅音要注意气流和发音位置，先慢后快。', '清辅音不震动声带，浊辅音要带声带震动。'],
+    near: symbol === 'θ' ? '/s/' : symbol === 'ð' ? '/z/' : undefined,
+    examples: [
+      { word, ipa: '/' + symbol + word.slice(1) + '/' },
+      { word: symbol === 'θ' ? 'think' : symbol === 'ð' ? 'that' : 'best', ipa: symbol === 'θ' ? '/θɪŋk/' : symbol === 'ð' ? '/ðæt/' : '/best/' },
+      { word: symbol === 'ʃ' ? 'ship' : symbol === 'tʃ' ? 'chair' : 'desk', ipa: symbol === 'ʃ' ? '/ʃɪp/' : symbol === 'tʃ' ? '/tʃer/' : '/desk/' },
+    ],
+  }
+}
+
+const vowelItems: IpaItem[] = vowelGroups.flatMap((group) =>
+  group.items.map(([symbol, sound, tips, near]) => ({
+    symbol: symbol as string,
+    group: group.category,
+    category: group.category,
+    kind: 'vowel' as const,
+    color: group.color,
+    sound: sound as string,
+    tips: tips as string[],
+    near: near as string,
+    examples:
+      symbol === 'æ'
+        ? [
+            { word: 'and', ipa: '/ænd/' },
+            { word: 'that', ipa: '/ðæt/' },
+            { word: 'have', ipa: '/hæv/' },
+            { word: 'can', ipa: '/kæn/' },
+            { word: 'aunt', ipa: '/ænt/' },
+            { word: 'auntie', ipa: '/ˈænti/' },
+            { word: 'draught', ipa: '/dræft/' },
+          ]
+        : [
+            { word: sound as string, ipa: '/' + symbol + '/' },
+            { word: sound === 'see' ? 'green' : sound === 'book' ? 'good' : 'practice', ipa: '/' + symbol + '/' },
+            { word: sound === 'day' ? 'play' : sound === 'go' ? 'home' : 'sample', ipa: '/' + symbol + '/' },
+          ],
+  })),
+)
+
+const consonantItems: IpaItem[] = consonantGroups.flatMap((group) =>
+  group.items.map(([symbol, word]) => makeConsonant(symbol, word, group.category, group.color)),
+)
+const allItems = [...vowelItems, ...consonantItems]
+
+function speak(text: string) {
+  if (!window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'en-US'
+  utterance.rate = 0.82
+  window.speechSynthesis.speak(utterance)
+}
+
+export default function IpaPage() {
+  const [selected, setSelected] = useState<IpaItem | null>(null)
+  const [practiceIndex, setPracticeIndex] = useState(0)
+  const groupedVowels = useMemo(() => vowelGroups, [])
+  const groupedConsonants = useMemo(() => consonantGroups, [])
+
+  const openItem = (item: IpaItem) => {
+    setSelected(item)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const nextPractice = () => {
+    const next = (practiceIndex + 1) % allItems.length
+    setPracticeIndex(next)
+    setSelected(allItems[next])
+    speak(allItems[next].sound)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  if (selected) {
+    return (
+      <main className="qwerty-ipa-page qwerty-ipa-detail">
+        <div className="ipa-topbar">
+          <button type="button" className="ipa-back" onClick={() => setSelected(null)}>‹</button>
+          <h1>{selected.group}</h1>
+          <span />
+        </div>
+        <section className="ipa-hero-card">
+          <div className="ipa-big">/{selected.symbol}/</div>
+          <div className="ipa-actions">
+            <button type="button" className="ipa-sound-main" onClick={() => speak(selected.sound)}>🔊</button>
+            <button type="button" className="ipa-mic" onClick={() => speak(selected.sound)}>🎙</button>
+          </div>
+        </section>
+        <section className="ipa-section">
+          <div className="ipa-section-title"><span />教学视频</div>
+          <div className="ipa-video-card" onClick={() => speak(selected.sound)}>
+            <div><p>音标视频教学</p><strong>/{selected.symbol}/</strong></div>
+            <button type="button">▶</button>
+          </div>
+          <button type="button" className="ipa-course-card">音标系统课 <small>不用背，会拼音就能会音标！</small><b>›</b></button>
+        </section>
+        <section className="ipa-section">
+          <div className="ipa-section-title"><span />发音要点</div>
+          <ol className="ipa-tips">{selected.tips.map((tip) => <li key={tip}>{tip}</li>)}</ol>
+        </section>
+        <section className="ipa-section">
+          <div className="ipa-section-title"><span />近似音标</div>
+          <button type="button" className="ipa-near-card" onClick={() => speak(selected.sound)}><strong>{selected.near || '多听示例单词'}</strong><span>🔊</span></button>
+        </section>
+        <section className="ipa-section">
+          <div className="ipa-section-title"><span />常见字母组合</div>
+          <p className="ipa-combo-note">点单词右下角按钮可以朗读。</p>
+          <div className="ipa-example-grid">
+            {selected.examples.map((example) => (
+              <article className="ipa-example-card" key={example.word}>
+                <b>{example.word}</b><em>{example.ipa}</em>
+                <button type="button" onClick={() => speak(example.word)}>🔊</button>
+              </article>
+            ))}
+          </div>
+        </section>
+        <div className="ipa-bottom-bar">
+          <div><span>熟练度</span><b>{practiceIndex}</b><i /></div>
+          <button type="button" onClick={nextPractice}>音标练习</button>
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <main className="qwerty-ipa-page">
+      <header className="ipa-home-header">
+        <div className="ipa-user"><span>nasaig...</span><i>›</i></div>
+        <button type="button" className="ipa-accent">美音 ›</button>
+      </header>
+      <div className="ipa-title-row">
+        <h1>48个国际音标</h1>
+        <div><button type="button">音标答疑</button><button type="button">点读</button></div>
+      </div>
+      <section className="ipa-board">
+        <div className="ipa-heading-row"><h2>24个元音</h2><p><span className="dot green" />单元音 <span className="dot orange" />双元音</p></div>
+        {groupedVowels.map((group) => (
+          <div className="ipa-row" key={group.category}>
+            <div className="ipa-row-label">{group.category}</div>
+            <div className="ipa-symbols">
+              {group.items.map(([symbol]) => {
+                const item = vowelItems.find((entry) => entry.symbol === symbol)!
+                return <button type="button" className={'ipa-symbol-tile ' + item.color} key={item.symbol} onClick={() => openItem(item)}>{item.symbol}</button>
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+      <section className="ipa-board">
+        <div className="ipa-heading-row"><h2>24个辅音</h2><p><span className="dot blue" />清辅音 <span className="dot purple" />浊辅音</p></div>
+        {groupedConsonants.map((group) => (
+          <div className="ipa-row" key={group.category}>
+            <div className="ipa-row-label">{group.category}</div>
+            <div className="ipa-symbols">
+              {group.items.map(([symbol]) => {
+                const item = consonantItems.find((entry) => entry.symbol === symbol)!
+                return <button type="button" className={'ipa-symbol-tile ' + item.color} key={item.symbol} onClick={() => openItem(item)}>{item.symbol}</button>
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+      <nav className="ipa-tabbar"><b>首页</b><span>背单词</span><span>阅读</span><span>课程</span><span>账号</span></nav>
+    </main>
+  )
+}
+`)
+
 replace('vite.config.ts', "return getLastCommit((err, commit) => (err ? 'unknown' : resolve(commit.shortHash)))", "return getLastCommit((err, commit) => resolve(err ? 'unknown' : commit.shortHash))")
 replace('src/index.tsx', "import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'", "import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'")
 replace('src/index.tsx', "import MobilePage from './pages/Mobile'\n", '')
 replace('src/index.tsx', "import { FriendLinks } from './pages/FriendLinks'\n", '')
-replace('src/index.tsx', "import './index.css'", "import './index.css'\nimport './mobile-practice.css'")
+replace('src/index.tsx', "import './index.css'", "import './index.css'\nimport './mobile-practice.css'\nimport IpaPage from './pages/Ipa'")
 replace('src/index.tsx', "<BrowserRouter basename={REACT_APP_DEPLOY_ENV === 'pages' ? '/qwerty-learner' : ''}>", '<HashRouter>')
 replace('src/index.tsx', '</BrowserRouter>', '</HashRouter>')
 replace('src/index.tsx', /  const \[isMobile, setIsMobile\][\s\S]*?  }, \[\]\)\n\n/, '')
@@ -52,6 +290,7 @@ replace('src/index.tsx', /\s*\{isMobile \? \([\s\S]*?<Route path="\/mobile" elem
             <Route path="/gallery" element={<GalleryPage />} />
             <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/error-book" element={<ErrorBook />} />
+            <Route path="/ipa" element={<IpaPage />} />
             <Route path="/*" element={<Navigate to="/" />} />`)
 replace('src/resources/dictionary.ts', /url: '\/dicts\//g, "url: './dicts/")
 replace('src/pages/Gallery-N/index.tsx', '<div className="relative mb-auto mt-auto flex w-full flex-1 flex-col overflow-y-auto pl-20">', '<div className="qwerty-mobile-gallery relative mb-auto mt-auto flex w-full flex-1 flex-col overflow-y-auto pl-20">')
@@ -87,6 +326,7 @@ replace('src/pages/Typing/index.tsx', `  const skipWord = useCallback(() => {
 `)
 replace('src/pages/Typing/index.tsx', `          <StartButton isLoading={isLoading} />
           <Tooltip content="跳过该词">`, `          <StartButton isLoading={isLoading} />
+          <a href="#/ipa" className="qwerty-mobile-ipa-entry my-btn-primary">音标练习</a>
           <button type="button" className="qwerty-mobile-keyboard-button my-btn-primary hidden" onClick={focusMobileKeyboard}>打开键盘</button>
           <button type="button" className="qwerty-mobile-speak-button my-btn-primary hidden" onClick={speakCurrentSentence}>朗读句子</button>
           <button type="button" className="qwerty-mobile-next-button my-btn-primary hidden" onClick={skipWord}>下一题</button>
@@ -215,6 +455,27 @@ header nav button,header nav a,.qwerty-mobile-keyboard-button,.qwerty-mobile-spe
 }
 `)
 
+fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
+.qwerty-mobile-ipa-entry{display:inline-flex;align-items:center;justify-content:center;min-width:5rem;height:2.25rem;padding:0 .75rem;border-radius:.65rem;color:#fff!important;font-size:.9rem;font-weight:700;text-decoration:none;white-space:nowrap;background:rgb(14 165 233)!important}
+.qwerty-ipa-page{min-height:100svh;background:#fff;color:#252a4f;padding:calc(env(safe-area-inset-top) + 1.25rem) clamp(1rem,4vw,2rem) 6.5rem;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
+.ipa-home-header,.ipa-title-row,.ipa-heading-row,.ipa-topbar{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.ipa-user{display:flex;align-items:center;gap:.6rem;font-size:1.1rem;font-weight:800}.ipa-user:before{content:"";width:2.8rem;height:2.8rem;border-radius:999px;background:linear-gradient(135deg,#e8f8ff,#ffe8e8)}
+.ipa-accent,.ipa-title-row button,.ipa-course-card,.ipa-near-card{border:1px solid #edf0f6;background:#fff;border-radius:999px;box-shadow:0 4px 14px rgba(37,42,79,.06)}
+.ipa-accent{padding:.55rem 1rem;font-size:1.05rem;font-weight:800;color:#252a4f}.ipa-title-row{margin:1.8rem 0 2rem}.ipa-title-row h1{font-size:2rem;line-height:1.1;font-weight:900}.ipa-title-row div{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:flex-end}.ipa-title-row button{padding:.55rem .85rem;font-size:.95rem;font-weight:800;color:#25b9e8}
+.ipa-board{margin-top:2rem}.ipa-heading-row h2{font-size:1.9rem;font-weight:900}.ipa-heading-row p{font-size:1.05rem;color:#707489}.dot{display:inline-block;width:.6rem;height:.6rem;margin:0 .35rem;border-radius:50%}.dot.green{background:#2ecc71}.dot.orange{background:#f59e0b}.dot.blue{background:#28aeda}.dot.purple{background:#a855f7}
+.ipa-row{display:grid;grid-template-columns:5.2rem minmax(0,1fr);gap:.7rem;margin:1.1rem 0;align-items:start}.ipa-row-label{min-height:4.1rem;border:1px solid #edf0f6;border-radius:1.1rem;display:flex;align-items:center;justify-content:center;text-align:center;padding:.45rem;font-size:1.05rem;font-weight:800;box-shadow:0 3px 10px rgba(37,42,79,.05)}
+.ipa-symbols{display:grid;grid-template-columns:repeat(auto-fill,minmax(3.65rem,1fr));gap:.7rem}.ipa-symbol-tile{height:4.1rem;border:1px solid #edf0f6;border-radius:1rem;background:#fff;font-size:1.55rem;font-weight:900;box-shadow:0 3px 10px rgba(37,42,79,.05)}.ipa-symbol-tile.green{color:#2ecc71}.ipa-symbol-tile.orange{color:#f59e0b}.ipa-symbol-tile.blue{color:#28aeda}.ipa-symbol-tile.purple{color:#a855f7}
+.ipa-tabbar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(5,1fr);gap:.2rem;padding:.6rem .75rem calc(env(safe-area-inset-bottom) + .6rem);background:rgba(255,255,255,.96);border-top:1px solid #eef1f5;text-align:center;color:#a0a6b8}.ipa-tabbar b{color:#29bfe9}
+.ipa-detail{padding-bottom:7.5rem}.ipa-topbar{margin-bottom:1.3rem}.ipa-topbar h1{font-size:1.65rem;font-weight:900}.ipa-back{width:2.5rem;height:2.5rem;border:0;background:transparent;font-size:3rem;line-height:1;color:#252a4f}
+.ipa-hero-card{border:1px solid #edf0f6;border-radius:1.6rem;min-height:12rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6rem;box-shadow:0 5px 16px rgba(37,42,79,.06)}.ipa-big{font-size:4rem;font-weight:900}.ipa-actions{display:flex;gap:1.2rem}.ipa-actions button{width:4rem;height:3.6rem;border-radius:1.1rem;border:1px solid #edf0f6;font-size:1.7rem;box-shadow:0 4px 10px rgba(37,42,79,.08)}.ipa-sound-main{background:#ffc21a!important}.ipa-mic{background:#fff!important}
+.ipa-section{margin-top:2rem}.ipa-section-title{display:flex;align-items:center;gap:.55rem;margin-bottom:1rem;font-size:1.35rem;font-weight:900}.ipa-section-title span{width:.62rem;height:.62rem;border-radius:999px;background:#29bfe9}.ipa-video-card{height:12rem;border:1px solid #2b3142;border-radius:.35rem;background:linear-gradient(110deg,#3777e6 0 58%,#fff 58%);display:flex;align-items:center;justify-content:space-around;color:#fff}.ipa-video-card strong{font-size:3.4rem}.ipa-video-card button{width:3.6rem;height:3.6rem;border:0;border-radius:999px;background:rgba(37,42,79,.55);color:white;font-size:1.5rem}
+.ipa-course-card{width:100%;margin-top:1.2rem;padding:1rem;display:flex;align-items:center;gap:.75rem;text-align:left;font-size:1.3rem;font-weight:900;color:#25b9e8;border-radius:1.1rem}.ipa-course-card small{display:block;flex:1;color:#9ba1b4;font-size:.95rem;font-weight:600}.ipa-course-card b{font-size:2rem;color:#c5cad5}
+.ipa-tips{padding-left:1.25rem;color:#8b90a2;font-size:1.05rem;line-height:1.8}.ipa-near-card{width:min(13rem,100%);min-height:7.5rem;border-radius:1.2rem;display:flex;align-items:center;justify-content:space-around;font-size:2.4rem}.ipa-near-card span{font-size:1.4rem}.ipa-combo-note{color:#9ba1b4;margin-top:-.4rem;margin-bottom:1rem}.ipa-example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.ipa-example-card{position:relative;min-height:8rem;border:1px solid #edf0f6;border-radius:1.25rem;padding:1.1rem;box-shadow:0 4px 12px rgba(37,42,79,.05)}.ipa-example-card b{display:block;font-size:1.45rem;color:#252a4f}.ipa-example-card em{display:block;margin-top:.55rem;color:#9ba1b4;font-size:1.15rem;font-style:normal}.ipa-example-card button{position:absolute;right:.8rem;bottom:.8rem;width:2.7rem;height:2.7rem;border:0;border-radius:999px;background:#f7fbff;color:#29bfe9;box-shadow:0 4px 10px rgba(37,42,79,.08)}
+.ipa-bottom-bar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1.2rem calc(env(safe-area-inset-bottom) + .75rem);background:rgba(255,255,255,.97);border-top:1px solid #eef1f5}.ipa-bottom-bar div{min-width:8rem;color:#25b9e8}.ipa-bottom-bar b{font-size:1.35rem;margin-left:.35rem}.ipa-bottom-bar i{display:block;width:7rem;height:.7rem;margin-top:.45rem;border-radius:999px;background:#eef0f5}.ipa-bottom-bar button{border:0;border-radius:1.1rem;background:#43c6ef;color:#fff;font-size:1.25rem;font-weight:900;padding:1rem 1.5rem;box-shadow:0 .25rem 0 #22aede}
+@media (max-width:520px){.qwerty-mobile-ipa-entry{min-width:4.4rem;height:2.05rem;font-size:.78rem;padding:0 .55rem}.qwerty-ipa-page{padding-left:.9rem;padding-right:.9rem}.ipa-title-row{align-items:flex-start}.ipa-title-row h1{font-size:1.75rem}.ipa-title-row div{max-width:9rem}.ipa-row{grid-template-columns:4.8rem minmax(0,1fr);gap:.55rem}.ipa-row-label{min-height:3.7rem;font-size:.95rem}.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(3.15rem,1fr));gap:.55rem}.ipa-symbol-tile{height:3.7rem;font-size:1.35rem}.ipa-heading-row h2{font-size:1.65rem}.ipa-heading-row p{font-size:.9rem}.ipa-example-grid{gap:.75rem}.ipa-example-card{min-height:7.2rem;padding:.9rem}.ipa-video-card{height:10rem}.ipa-big{font-size:3.4rem}}
+@media (min-width:900px){.qwerty-ipa-page{max-width:56rem;margin:0 auto}.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(4.2rem,1fr))}}
+`)
+
 run('npm', ['install', '--ignore-scripts'], qwerty)
 run('npm', ['run', 'build'], qwerty)
 fs.rmSync(target, { recursive: true, force: true })
@@ -224,3 +485,4 @@ self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(
 self.addEventListener('fetch', event => { event.respondWith(fetch(event.request)) })
 `)
 console.log(`Published original Qwerty Learner build with ${fs.readdirSync(path.join(target, 'dicts')).length} dictionary files.`)
+
