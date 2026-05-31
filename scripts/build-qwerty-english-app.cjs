@@ -96,6 +96,9 @@ replace('src/pages/Typing/components/WordPanel/index.tsx', '  const [isShowTrans
   const [isShowTranslation, setIsHoveringTranslation] = useState(false)`)
 replace('src/pages/Typing/components/WordPanel/index.tsx', '<div className="container flex h-full w-full flex-col items-center justify-center">', '<div className="container qwerty-mobile-word-panel flex h-full w-full flex-col items-center justify-center" onPointerDown={startTypingByTouch}>')
 replace('src/pages/Typing/components/WordPanel/index.tsx', '按任意键{state.timerData.time ? \'继续\' : \'开始\'}', "{window.innerWidth <= 1024 ? '点屏幕或打开键盘' : '按任意键'}{state.timerData.time ? '继续' : '开始'}")
+replace('src/pages/Typing/components/WordPanel/components/Word/index.tsx', 'className="flex flex-col items-center justify-center pb-1 pt-4"', 'className="qwerty-mobile-word-wrap flex flex-col items-center justify-center pb-1 pt-4"')
+replace('src/pages/Typing/components/WordPanel/components/Word/index.tsx', 'className={`tooltip-info relative w-fit bg-transparent p-0 leading-normal shadow-none dark:bg-transparent ${', 'className={`qwerty-mobile-word-tooltip tooltip-info relative w-fit bg-transparent p-0 leading-normal shadow-none dark:bg-transparent ${')
+replace('src/pages/Typing/components/WordPanel/components/Word/index.tsx', 'className={`flex items-center ${isTextSelectable && \'select-all\'} justify-center ${wordState.hasWrong ? style.wrong : \'\'}`}', 'className={`qwerty-mobile-letter-row flex items-center ${isTextSelectable && \'select-all\'} justify-center ${wordState.hasWrong ? style.wrong : \'\'}`}')
 
 replace('src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx', '  const { state } = useContext(TypingContext)!', '  const { state, dispatch } = useContext(TypingContext)!')
 replace('src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx', "import { TypingContext } from '@/pages/Typing/store'", "import { TypingContext, TypingStateActionType } from '@/pages/Typing/store'")
@@ -171,6 +174,14 @@ header nav button,header nav a{min-width:2.05rem;min-height:2.05rem}
 .qwerty-mobile-gallery [class*="grid"]{display:grid!important;grid-template-columns:repeat(2,18rem)!important;gap:1rem!important;padding-right:2rem!important}
 .qwerty-mobile-gallery [role="button"]{width:18rem!important}
 [role="dialog"]{max-width:calc(100vw - 1.5rem)!important;max-height:calc(100svh - 2rem)!important;overflow:auto!important;-webkit-overflow-scrolling:touch}
+.qwerty-mobile-word-wrap{width:100%!important;max-width:calc(100vw - .75rem)!important;overflow:visible!important}
+.qwerty-mobile-word-tooltip{width:100%!important;max-width:calc(100vw - .75rem)!important}
+.qwerty-mobile-letter-row{max-width:100%!important;width:100%!important;flex-wrap:wrap!important;align-items:center!important;justify-content:center!important;overflow:visible!important;white-space:normal!important;line-height:1.18!important;row-gap:.12rem}
+.qwerty-mobile-letter-row>span{display:inline-block!important;line-height:1.12!important;white-space:pre-wrap!important}
+.qwerty-mobile-letter-row:has(>span:nth-child(18))>span{font-size:clamp(1.05rem,4.8vw,1.45rem)!important}
+.qwerty-mobile-letter-row:has(>span:nth-child(45))>span{font-size:clamp(.82rem,3.4vw,1.05rem)!important}
+.qwerty-mobile-word-tooltip+div,.qwerty-mobile-word-wrap+div{max-width:calc(100vw - 1rem)!important}
+.qwerty-mobile-word-panel span.max-w-4xl{max-width:calc(100vw - 1rem)!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.35!important;font-size:clamp(.92rem,4vw,1.08rem)!important;padding-left:.4rem!important;padding-right:.4rem!important}
 footer{display:none!important}
 }
 @media (max-width:1024px) and (orientation:landscape){
