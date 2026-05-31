@@ -159,7 +159,7 @@ header nav button,header nav a{min-width:2.05rem;min-height:2.05rem}
 .qwerty-mobile-practice{flex:0 0 auto;height:auto!important;min-height:0!important;overflow:visible!important;padding-left:.45rem!important;padding-right:.45rem!important;padding-bottom:0!important;justify-content:flex-start!important}
 .qwerty-mobile-practice>div,.qwerty-mobile-practice>div>div{height:auto!important;min-height:0!important;overflow:visible!important}
 .qwerty-mobile-word-panel{height:auto!important;min-height:16rem!important;justify-content:flex-start!important;padding-top:.1rem;overflow:visible!important}
-.qwerty-mobile-word-panel>div:first-child{height:1.4rem!important;padding-left:.55rem!important;padding-right:.55rem!important;padding-top:.05rem!important}
+.qwerty-mobile-word-panel>div:first-child{display:none!important}
 .qwerty-mobile-word-panel>div:nth-child(2){flex:0 0 auto!important;min-height:9rem!important;max-height:none!important;justify-content:center!important;overflow:visible!important}
 .qwerty-mobile-word-panel p{font-size:clamp(.82rem,3.3vw,1.05rem)}
 .qwerty-mobile-word-panel [class*="text-7xl"],.qwerty-mobile-word-panel [class*="text-8xl"],.qwerty-mobile-word-panel [class*="text-9xl"]{font-size:clamp(2.05rem,13vw,4.2rem)!important;line-height:1.02!important}
@@ -180,6 +180,7 @@ header nav button,header nav a{min-width:2.05rem;min-height:2.05rem}
 .qwerty-mobile-letter-row>span{display:inline-block!important;line-height:1.12!important;white-space:pre-wrap!important}
 .qwerty-mobile-letter-row:has(>span:nth-child(18))>span{font-size:clamp(1.05rem,4.8vw,1.45rem)!important}
 .qwerty-mobile-letter-row:has(>span:nth-child(45))>span{font-size:clamp(.82rem,3.4vw,1.05rem)!important}
+.qwerty-mobile-word-tooltip [class*="-right-12"]{display:none!important}
 .qwerty-mobile-word-tooltip+div,.qwerty-mobile-word-wrap+div{max-width:calc(100vw - 1rem)!important}
 .qwerty-mobile-word-panel span.max-w-4xl{max-width:calc(100vw - 1rem)!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.35!important;font-size:clamp(.92rem,4vw,1.08rem)!important;padding-left:.4rem!important;padding-right:.4rem!important}
 footer{display:none!important}
