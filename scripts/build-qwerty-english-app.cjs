@@ -71,6 +71,16 @@ replace('src/pages/Typing/index.tsx', `  const skipWord = useCallback(() => {
     window.setTimeout(() => document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus(), 80)
   }, [dispatch])
 
+  const speakCurrentSentence = useCallback(() => {
+    const text = state.chapterData.words[state.chapterData.index]?.name
+    if (!text || !window.speechSynthesis) return
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text.replace(/␣/g, ' '))
+    utterance.lang = 'en-US'
+    utterance.rate = 0.9
+    window.speechSynthesis.speak(utterance)
+  }, [state.chapterData.index, state.chapterData.words])
+
   const skipWord = useCallback(() => {
     dispatch({ type: TypingStateActionType.SKIP_WORD })
   }, [dispatch])
@@ -78,6 +88,8 @@ replace('src/pages/Typing/index.tsx', `  const skipWord = useCallback(() => {
 replace('src/pages/Typing/index.tsx', `          <StartButton isLoading={isLoading} />
           <Tooltip content="跳过该词">`, `          <StartButton isLoading={isLoading} />
           <button type="button" className="qwerty-mobile-keyboard-button my-btn-primary hidden" onClick={focusMobileKeyboard}>打开键盘</button>
+          <button type="button" className="qwerty-mobile-speak-button my-btn-primary hidden" onClick={speakCurrentSentence}>朗读句子</button>
+          <button type="button" className="qwerty-mobile-next-button my-btn-primary hidden" onClick={skipWord}>下一题</button>
           <Tooltip content="跳过该词">`)
 replace('src/pages/Typing/components/ResultScreen/index.tsx', /              <div className="ml-2 flex flex-col items-center justify-end gap-3 text-xl">[\s\S]*?                <a href="https:\/\/github\.com\/Kaiyiwing\/qwerty-learner"[\s\S]*?              <\/div>/, `              <div className="ml-2 flex flex-col items-center justify-end gap-3 text-xl">
                 {!isReviewMode && (<><ShareButton /><IexportWords fontSize={18} className="cursor-pointer text-gray-500" onClick={exportWords}></IexportWords></>)}
@@ -99,6 +111,7 @@ replace('src/pages/Typing/components/WordPanel/index.tsx', '按任意键{state.t
 replace('src/pages/Typing/components/WordPanel/components/Word/index.tsx', 'className="flex flex-col items-center justify-center pb-1 pt-4"', 'className="qwerty-mobile-word-wrap flex flex-col items-center justify-center pb-1 pt-4"')
 replace('src/pages/Typing/components/WordPanel/components/Word/index.tsx', 'className={`tooltip-info relative w-fit bg-transparent p-0 leading-normal shadow-none dark:bg-transparent ${', 'className={`qwerty-mobile-word-tooltip tooltip-info relative w-fit bg-transparent p-0 leading-normal shadow-none dark:bg-transparent ${')
 replace('src/pages/Typing/components/WordPanel/components/Word/index.tsx', 'className={`flex items-center ${isTextSelectable && \'select-all\'} justify-center ${wordState.hasWrong ? style.wrong : \'\'}`}', 'className={`qwerty-mobile-letter-row flex items-center ${isTextSelectable && \'select-all\'} justify-center ${wordState.hasWrong ? style.wrong : \'\'}`}')
+replace('src/pages/Typing/components/WordList/index.tsx', '<Dialog.Title as="h3" className="flex items-center justify-between p-4 text-lg font-medium leading-6 dark:text-gray-50">', '<Dialog.Title as="h3" className="flex items-center justify-between p-4 text-lg font-medium leading-6 dark:text-gray-50">\n          <button type="button" className="qwerty-mobile-drawer-back hidden" onClick={closeModal}>返回</button>')
 
 replace('src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx', '  const { state } = useContext(TypingContext)!', '  const { state, dispatch } = useContext(TypingContext)!')
 replace('src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx', "import { TypingContext } from '@/pages/Typing/store'", "import { TypingContext, TypingStateActionType } from '@/pages/Typing/store'")
@@ -154,7 +167,9 @@ header nav{width:100%!important;max-width:100%;overflow:visible;justify-content:
 header nav>:not([hidden])~:not([hidden]){margin-left:0!important}
 header nav>*{flex:0 0 auto}
 header nav button,header nav a{min-width:2.05rem;min-height:2.05rem}
-.qwerty-mobile-keyboard-button{display:inline-flex!important;align-items:center;justify-content:center;min-width:4.7rem!important;height:2.1rem!important;padding:0 .65rem!important;font-size:.82rem!important;white-space:nowrap}
+.qwerty-mobile-keyboard-button,.qwerty-mobile-speak-button,.qwerty-mobile-next-button{display:inline-flex!important;align-items:center;justify-content:center;min-width:4.7rem!important;height:2.1rem!important;padding:0 .65rem!important;font-size:.82rem!important;white-space:nowrap}
+.qwerty-mobile-speak-button{background:rgb(34 197 94)!important}
+.qwerty-mobile-next-button{background:rgb(99 102 241)!important}
 .qwerty-mobile-textarea[data-mobile-typing-input="true"]{position:fixed!important;top:auto!important;bottom:calc(env(safe-area-inset-bottom) + 10px)!important;left:1rem!important;z-index:60!important;width:calc(100vw - 2rem)!important;height:3rem!important;border:1px solid rgb(165 180 252)!important;border-radius:.75rem!important;background:rgba(255,255,255,.92)!important;color:transparent!important;caret-color:rgb(99 102 241)!important;box-shadow:0 10px 25px rgba(79,70,229,.18)!important;padding:0 .75rem!important;font-size:16px!important;pointer-events:auto!important}
 .qwerty-mobile-practice{flex:0 0 auto;height:auto!important;min-height:0!important;overflow:visible!important;padding-left:.45rem!important;padding-right:.45rem!important;padding-bottom:0!important;justify-content:flex-start!important}
 .qwerty-mobile-practice>div,.qwerty-mobile-practice>div>div{height:auto!important;min-height:0!important;overflow:visible!important}
@@ -183,6 +198,7 @@ header nav button,header nav a{min-width:2.05rem;min-height:2.05rem}
 .qwerty-mobile-word-tooltip [class*="-right-12"]{display:none!important}
 .qwerty-mobile-word-tooltip+div,.qwerty-mobile-word-wrap+div{max-width:calc(100vw - 1rem)!important}
 .qwerty-mobile-word-panel span.max-w-4xl{max-width:calc(100vw - 1rem)!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;line-height:1.35!important;font-size:clamp(.92rem,4vw,1.08rem)!important;padding-left:.4rem!important;padding-right:.4rem!important}
+.qwerty-mobile-drawer-back{display:inline-flex!important;align-items:center;justify-content:center;border-radius:.65rem;background:rgb(99 102 241);color:white;padding:.45rem .8rem;font-size:1rem;margin-right:.75rem}
 footer{display:none!important}
 }
 @media (max-width:1024px) and (orientation:landscape){
@@ -192,7 +208,7 @@ header.container>div{flex-direction:row!important;gap:.45rem}
 .qwerty-local-title{font-size:1.05rem!important}
 .qwerty-local-title img{width:1.85rem!important;height:1.85rem!important}
 header nav{width:auto!important;flex:1 1 auto;padding:.25rem!important}
-header nav button,header nav a,.qwerty-mobile-keyboard-button{min-height:1.9rem!important;height:1.9rem!important}
+header nav button,header nav a,.qwerty-mobile-keyboard-button,.qwerty-mobile-speak-button,.qwerty-mobile-next-button{min-height:1.9rem!important;height:1.9rem!important}
 .qwerty-mobile-word-panel>div:first-child{display:none!important}
 .qwerty-mobile-word-panel [class*="text-7xl"],.qwerty-mobile-word-panel [class*="text-8xl"],.qwerty-mobile-word-panel [class*="text-9xl"]{font-size:clamp(1.8rem,8.2vw,3rem)!important}
 .qwerty-mobile-gallery>div{padding-top:1rem!important}
