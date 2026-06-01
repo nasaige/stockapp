@@ -5,6 +5,7 @@ const { execFileSync } = require('child_process')
 const root = process.cwd()
 const work = path.join(root, '.qwerty-build')
 const qwerty = path.join(work, 'qwerty-learner')
+const dictionaryData = path.join(work, 'DictionaryData')
 const target = path.join(root, 'english-ios-app')
 
 function run(cmd, args, cwd = root) {
@@ -21,10 +22,103 @@ function replace(file, from, to) {
   if (next === text) throw new Error(`Patch failed: ${file}`)
   fs.writeFileSync(p, next)
 }
+function parseCsvLine(line) {
+  const out = []
+  let value = ''
+  let quoted = false
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (ch === '"') {
+      if (quoted && line[i + 1] === '"') {
+        value += '"'
+        i++
+      } else {
+        quoted = !quoted
+      }
+    } else if (ch === ',' && !quoted) {
+      out.push(value)
+      value = ''
+    } else {
+      value += ch
+    }
+  }
+  out.push(value)
+  return out
+}
+function cleanText(text) {
+  return String(text || '').replace(/\s+/g, ' ').trim()
+}
+function buildDictionaryData() {
+  const outputDir = path.join(qwerty, 'public', 'dictionary-data')
+  fs.mkdirSync(outputDir, { recursive: true })
+
+  const books = fs.readFileSync(path.join(dictionaryData, 'book.csv'), 'utf8')
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .slice(1)
+    .map((line) => {
+      const cells = line.split('>')
+      return {
+        id: cells[0],
+        parentId: cells[1],
+        level: Number(cells[2]) || 0,
+        order: Number(cells[3]) || 0,
+        name: cleanText(cells[4]),
+        count: Number(cells[5]) || 0,
+        book: cleanText(cells[8]),
+      }
+    })
+    .filter((book) => book.name)
+
+  const translations = new Map()
+  fs.readFileSync(path.join(dictionaryData, 'word_translation.csv'), 'utf8')
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .slice(1)
+    .forEach((line) => {
+      const [word, translation] = parseCsvLine(line)
+      const key = cleanText(word).toLowerCase()
+      if (key && !translations.has(key)) translations.set(key, cleanText(translation).slice(0, 280))
+    })
+
+  const words = []
+  const seen = new Set()
+  fs.readFileSync(path.join(dictionaryData, 'word.csv'), 'utf8')
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .slice(1)
+    .forEach((line) => {
+      const cells = line.split('>')
+      const word = cleanText(cells[1])
+      const key = word.toLowerCase()
+      if (!word || seen.has(key)) return
+      seen.add(key)
+      words.push({
+        w: word,
+        uk: cleanText(cells[2]),
+        us: cleanText(cells[3]),
+        f: Number(cells[4]) || 0,
+        d: Number(cells[5]) || 0,
+        t: translations.get(key) || '',
+      })
+    })
+  for (const [key, translation] of translations) {
+    if (!seen.has(key)) words.push({ w: key, uk: '', us: '', f: 0, d: 0, t: translation })
+  }
+
+  fs.writeFileSync(path.join(outputDir, 'dictionary.json'), JSON.stringify({
+    source: 'LinXueyuanStdio/DictionaryData',
+    generatedAt: new Date().toISOString(),
+    counts: { books: books.length, words: words.length },
+    books,
+    words,
+  }))
+}
 
 fs.rmSync(work, { recursive: true, force: true })
 fs.mkdirSync(work, { recursive: true })
 run('git', ['clone', '--depth=1', 'https://github.com/RealKai42/qwerty-learner.git', qwerty])
+run('git', ['clone', '--depth=1', 'https://github.com/LinXueyuanStdio/DictionaryData.git', dictionaryData])
 
 write(path.join(qwerty, 'src/components/Header/index.tsx'), `import logo from '@/assets/logo.svg'
 import type { PropsWithChildren } from 'react'
@@ -276,11 +370,149 @@ export default function IpaPage() {
 }
 `)
 
+write(path.join(qwerty, 'src/pages/Dictionary/index.tsx'), `import { useEffect, useMemo, useState } from 'react'
+
+type DictWord = { w: string; uk?: string; us?: string; f?: number; d?: number; t?: string }
+type DictBook = { id: string; parentId: string; level: number; order: number; name: string; count: number; book?: string }
+type DictPayload = { counts: { books: number; words: number }; books: DictBook[]; words: DictWord[] }
+
+const hotQueries = ['abandon', 'apple', 'IELTS', 'custom', 'school', 'ability']
+
+function speak(text: string) {
+  if (!text || !window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'en-US'
+  utterance.rate = 0.85
+  window.speechSynthesis.speak(utterance)
+}
+
+export default function DictionaryPage() {
+  const [data, setData] = useState<DictPayload | null>(null)
+  const [query, setQuery] = useState('')
+  const [activeBook, setActiveBook] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('./dictionary-data/dictionary.json', { cache: 'force-cache' })
+      .then((response) => response.json())
+      .then((payload) => {
+        if (!cancelled) setData(payload)
+      })
+      .catch(() => {
+        if (!cancelled) setData({ counts: { books: 0, words: 0 }, books: [], words: [] })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const rootBooks = useMemo(() => {
+    if (!data) return []
+    return data.books
+      .filter((book) => book.level === 1 || book.parentId === '0')
+      .sort((a, b) => a.order - b.order)
+      .slice(0, 24)
+  }, [data])
+
+  const childBooks = useMemo(() => {
+    if (!data || !activeBook) return []
+    return data.books
+      .filter((book) => book.parentId === activeBook)
+      .sort((a, b) => a.order - b.order)
+      .slice(0, 60)
+  }, [activeBook, data])
+
+  const results = useMemo(() => {
+    if (!data) return []
+    const q = query.trim().toLowerCase()
+    if (!q) {
+      return data.words
+        .filter((word) => word.t)
+        .slice(0, 80)
+    }
+    const starts: DictWord[] = []
+    const includes: DictWord[] = []
+    for (const word of data.words) {
+      const name = word.w.toLowerCase()
+      const translation = (word.t || '').toLowerCase()
+      if (name.startsWith(q)) starts.push(word)
+      else if (name.includes(q) || translation.includes(q)) includes.push(word)
+      if (starts.length + includes.length >= 90) break
+    }
+    return [...starts, ...includes].slice(0, 80)
+  }, [data, query])
+
+  return (
+    <main className="qwerty-dictionary-page">
+      <header className="dict-topbar">
+        <a href="#/" className="dict-back">‹</a>
+        <div>
+          <h1>词典数据</h1>
+          <p>DictionaryData 本地搜索模块</p>
+        </div>
+        <a href="#/ipa" className="dict-ipa-link">音标</a>
+      </header>
+
+      <section className="dict-search-card">
+        <label>
+          <span>搜索单词 / 中文释义</span>
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="输入 apple、abandon、学校..." autoCapitalize="none" autoCorrect="off" />
+        </label>
+        <div className="dict-hot-row">
+          {hotQueries.map((item) => <button type="button" key={item} onClick={() => setQuery(item)}>{item}</button>)}
+        </div>
+        <div className="dict-counts">
+          <b>{data ? data.counts.words.toLocaleString() : '加载中'}</b><span>单词</span>
+          <b>{data ? data.counts.books.toLocaleString() : '--'}</b><span>词库</span>
+        </div>
+      </section>
+
+      <section className="dict-section">
+        <div className="dict-section-title">词库分类</div>
+        <div className="dict-book-grid">
+          {rootBooks.map((book) => (
+            <button type="button" className={activeBook === book.id ? 'active' : ''} key={book.id} onClick={() => setActiveBook(activeBook === book.id ? null : book.id)}>
+              <strong>{book.name}</strong>
+              <span>{book.count.toLocaleString()} 词</span>
+            </button>
+          ))}
+        </div>
+        {childBooks.length > 0 && (
+          <div className="dict-child-books">
+            {childBooks.map((book) => <span key={book.id}>{book.name}<small>{book.count}</small></span>)}
+          </div>
+        )}
+      </section>
+
+      <section className="dict-section">
+        <div className="dict-section-title">搜索结果</div>
+        {!data && <div className="dict-loading">正在加载词典数据...</div>}
+        {data && results.length === 0 && <div className="dict-loading">没有找到匹配单词，换个关键词试试。</div>}
+        <div className="dict-result-list">
+          {results.map((word) => (
+            <article className="dict-word-card" key={word.w}>
+              <div>
+                <h2>{word.w}</h2>
+                <p>{word.us && <span>美 {word.us}</span>}{word.uk && <span>英 {word.uk}</span>}</p>
+              </div>
+              <button type="button" onClick={() => speak(word.w)}>🔊</button>
+              <p className="dict-translation">{word.t || '暂无中文释义'}</p>
+              <footer><span>难度 {word.d || 0}</span><span>词频 {(word.f || 0).toFixed(2)}</span></footer>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  )
+}
+`)
+
 replace('vite.config.ts', "return getLastCommit((err, commit) => (err ? 'unknown' : resolve(commit.shortHash)))", "return getLastCommit((err, commit) => resolve(err ? 'unknown' : commit.shortHash))")
 replace('src/index.tsx', "import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'", "import { HashRouter, Navigate, Route, Routes } from 'react-router-dom'")
 replace('src/index.tsx', "import MobilePage from './pages/Mobile'\n", '')
 replace('src/index.tsx', "import { FriendLinks } from './pages/FriendLinks'\n", '')
-replace('src/index.tsx', "import './index.css'", "import './index.css'\nimport './mobile-practice.css'\nimport IpaPage from './pages/Ipa'")
+replace('src/index.tsx', "import './index.css'", "import './index.css'\nimport './mobile-practice.css'\nimport IpaPage from './pages/Ipa'\nimport DictionaryPage from './pages/Dictionary'")
 replace('src/index.tsx', "<BrowserRouter basename={REACT_APP_DEPLOY_ENV === 'pages' ? '/qwerty-learner' : ''}>", '<HashRouter>')
 replace('src/index.tsx', '</BrowserRouter>', '</HashRouter>')
 replace('src/index.tsx', /  const \[isMobile, setIsMobile\][\s\S]*?  }, \[\]\)\n\n/, '')
@@ -291,6 +523,7 @@ replace('src/index.tsx', /\s*\{isMobile \? \([\s\S]*?<Route path="\/mobile" elem
             <Route path="/analysis" element={<AnalysisPage />} />
             <Route path="/error-book" element={<ErrorBook />} />
             <Route path="/ipa" element={<IpaPage />} />
+            <Route path="/dictionary" element={<DictionaryPage />} />
             <Route path="/*" element={<Navigate to="/" />} />`)
 replace('src/resources/dictionary.ts', /url: '\/dicts\//g, "url: './dicts/")
 replace('src/pages/Gallery-N/index.tsx', '<div className="relative mb-auto mt-auto flex w-full flex-1 flex-col overflow-y-auto pl-20">', '<div className="qwerty-mobile-gallery relative mb-auto mt-auto flex w-full flex-1 flex-col overflow-y-auto pl-20">')
@@ -327,6 +560,7 @@ replace('src/pages/Typing/index.tsx', `  const skipWord = useCallback(() => {
 replace('src/pages/Typing/index.tsx', `          <StartButton isLoading={isLoading} />
           <Tooltip content="跳过该词">`, `          <StartButton isLoading={isLoading} />
           <a href="#/ipa" className="qwerty-mobile-ipa-entry my-btn-primary">音标练习</a>
+          <a href="#/dictionary" className="qwerty-mobile-dict-entry my-btn-primary">词典数据</a>
           <button type="button" className="qwerty-mobile-keyboard-button my-btn-primary hidden" onClick={focusMobileKeyboard}>打开键盘</button>
           <button type="button" className="qwerty-mobile-speak-button my-btn-primary hidden" onClick={speakCurrentSentence}>朗读句子</button>
           <button type="button" className="qwerty-mobile-next-button my-btn-primary hidden" onClick={skipWord}>下一题</button>
@@ -457,6 +691,7 @@ header nav button,header nav a,.qwerty-mobile-keyboard-button,.qwerty-mobile-spe
 
 fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
 .qwerty-mobile-ipa-entry{display:inline-flex;align-items:center;justify-content:center;min-width:5rem;height:2.25rem;padding:0 .75rem;border-radius:.65rem;color:#fff!important;font-size:.9rem;font-weight:700;text-decoration:none;white-space:nowrap;background:rgb(14 165 233)!important}
+.qwerty-mobile-dict-entry{display:inline-flex;align-items:center;justify-content:center;min-width:5rem;height:2.25rem;padding:0 .75rem;border-radius:.65rem;color:#fff!important;font-size:.9rem;font-weight:700;text-decoration:none;white-space:nowrap;background:rgb(16 185 129)!important}
 .qwerty-ipa-page{min-height:100svh;background:#fff;color:#252a4f;padding:calc(env(safe-area-inset-top) + 1.25rem) clamp(1rem,4vw,2rem) 6.5rem;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
 .ipa-home-header,.ipa-title-row,.ipa-heading-row,.ipa-topbar{display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .ipa-user{display:flex;align-items:center;gap:.6rem;font-size:1.1rem;font-weight:800}.ipa-user:before{content:"";width:2.8rem;height:2.8rem;border-radius:999px;background:linear-gradient(135deg,#e8f8ff,#ffe8e8)}
@@ -476,6 +711,18 @@ fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
 @media (min-width:900px){.qwerty-ipa-page{max-width:56rem;margin:0 auto}.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(4.2rem,1fr))}}
 `)
 
+fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
+.qwerty-dictionary-page{min-height:100svh;background:#f7f8fc;color:#22284a;padding:calc(env(safe-area-inset-top) + 1rem) clamp(.9rem,4vw,1.5rem) 3rem;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.dict-topbar{display:grid;grid-template-columns:2.6rem 1fr auto;gap:.8rem;align-items:center;margin-bottom:1rem}.dict-back{width:2.4rem;height:2.4rem;border-radius:999px;background:#fff;color:#22284a;text-decoration:none;font-size:2.8rem;line-height:2rem;text-align:center;box-shadow:0 4px 16px rgba(31,41,55,.08)}.dict-topbar h1{margin:0;font-size:1.7rem;font-weight:900}.dict-topbar p{margin:.1rem 0 0;color:#858ca3}.dict-ipa-link{border-radius:999px;background:#eef6ff;color:#2563eb;padding:.55rem .85rem;text-decoration:none;font-weight:800}
+.dict-search-card{background:#fff;border-radius:1.2rem;padding:1rem;box-shadow:0 10px 30px rgba(31,41,55,.08)}.dict-search-card label span{display:block;margin-bottom:.45rem;font-weight:800;color:#4b5270}.dict-search-card input{width:100%;height:3.1rem;border:1px solid #dce2f0;border-radius:.9rem;padding:0 .9rem;font-size:1rem;outline:none}.dict-search-card input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.12)}
+.dict-hot-row{display:flex;gap:.45rem;overflow-x:auto;padding:.8rem 0 .25rem}.dict-hot-row button{flex:0 0 auto;border:0;border-radius:999px;background:#eef2ff;color:#4f46e5;padding:.45rem .75rem;font-weight:800}.dict-counts{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:.35rem .5rem;align-items:baseline;margin-top:.65rem;color:#81889d}.dict-counts b{font-size:1.35rem;color:#111827}
+.dict-section{margin-top:1.35rem}.dict-section-title{margin-bottom:.7rem;font-size:1.2rem;font-weight:900}.dict-book-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.dict-book-grid button{min-height:5.2rem;border:1px solid #edf0f6;border-radius:1rem;background:#fff;padding:.8rem;text-align:left;box-shadow:0 5px 18px rgba(31,41,55,.06)}.dict-book-grid button.active{border-color:#34d399;background:#ecfdf5}.dict-book-grid strong{display:block;font-size:1rem;line-height:1.25}.dict-book-grid span{display:block;margin-top:.45rem;color:#858ca3}.dict-child-books{display:flex;gap:.55rem;overflow-x:auto;padding:.8rem 0}.dict-child-books span{flex:0 0 auto;border-radius:999px;background:#fff;border:1px solid #edf0f6;padding:.48rem .7rem;color:#4b5270}.dict-child-books small{margin-left:.35rem;color:#10b981}
+.dict-loading{border-radius:1rem;background:#fff;padding:1.2rem;text-align:center;color:#858ca3}.dict-result-list{display:grid;gap:.8rem}.dict-word-card{display:grid;grid-template-columns:1fr 2.7rem;gap:.4rem .7rem;background:#fff;border-radius:1rem;padding:1rem;box-shadow:0 6px 20px rgba(31,41,55,.06)}.dict-word-card h2{margin:0;font-size:1.45rem;color:#111827;overflow-wrap:anywhere}.dict-word-card p{margin:0}.dict-word-card div p{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.35rem;color:#6b7280}.dict-word-card button{grid-column:2;grid-row:1;border:0;border-radius:999px;background:#eef6ff;color:#0ea5e9;font-size:1.25rem}.dict-translation{grid-column:1 / -1;color:#374151;line-height:1.55;overflow-wrap:anywhere}.dict-word-card footer{grid-column:1 / -1;display:flex;gap:.55rem;color:#9ca3af;font-size:.85rem}
+@media (max-width:520px){.qwerty-mobile-dict-entry{min-width:4.4rem;height:2.05rem;font-size:.78rem;padding:0 .55rem}.dict-book-grid{grid-template-columns:1fr}.dict-topbar h1{font-size:1.45rem}.dict-topbar p{font-size:.85rem}}
+@media (min-width:900px){.qwerty-dictionary-page{max-width:58rem;margin:0 auto}.dict-book-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+`)
+
+buildDictionaryData()
 run('npm', ['install', '--ignore-scripts'], qwerty)
 run('npm', ['run', 'build'], qwerty)
 fs.rmSync(target, { recursive: true, force: true })
