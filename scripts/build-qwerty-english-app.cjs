@@ -580,7 +580,32 @@ replace('src/pages/Typing/components/WordPanel/index.tsx', '  const [isShowTrans
     window.setTimeout(() => document.querySelector<HTMLTextAreaElement>('textarea[data-mobile-typing-input="true"]')?.focus(), 80)
   }, [dispatch, state.isTyping])
 
+  const speakCompletedWord = useCallback(() => {
+    if (!currentWord || !window.speechSynthesis) return
+    const wordText = currentWord.name.replace(/␣/g, ' ')
+    const transText = currentWord.trans.join('，').replace(/<[^>]*>/g, '').slice(0, 120)
+    window.speechSynthesis.cancel()
+    const en = new SpeechSynthesisUtterance(wordText)
+    en.lang = 'en-US'
+    en.rate = 0.88
+    window.speechSynthesis.speak(en)
+    if (transText) {
+      const zh = new SpeechSynthesisUtterance(transText)
+      zh.lang = 'zh-CN'
+      zh.rate = 0.95
+      window.speechSynthesis.speak(zh)
+    }
+  }, [currentWord])
+
   const [isShowTranslation, setIsHoveringTranslation] = useState(false)`)
+replace('src/pages/Typing/components/WordPanel/index.tsx', `  const onFinish = useCallback(() => {
+    if (state.chapterData.index < state.chapterData.words.length - 1 || currentWordExerciseCount < loopWordTimes - 1) {`, `  const onFinish = useCallback(() => {
+    speakCompletedWord()
+    if (state.chapterData.index < state.chapterData.words.length - 1 || currentWordExerciseCount < loopWordTimes - 1) {`)
+replace('src/pages/Typing/components/WordPanel/index.tsx', `    isReviewMode,
+    updateReviewRecord,`, `    isReviewMode,
+    speakCompletedWord,
+    updateReviewRecord,`)
 replace('src/pages/Typing/components/WordPanel/index.tsx', '<div className="container flex h-full w-full flex-col items-center justify-center">', '<div className="container qwerty-mobile-word-panel flex h-full w-full flex-col items-center justify-center" onPointerDown={startTypingByTouch}>')
 replace('src/pages/Typing/components/WordPanel/index.tsx', '按任意键{state.timerData.time ? \'继续\' : \'开始\'}', "{window.innerWidth <= 1024 ? '点屏幕或打开键盘' : '按任意键'}{state.timerData.time ? '继续' : '开始'}")
 replace('src/pages/Typing/components/WordPanel/components/Word/index.tsx', 'className="flex flex-col items-center justify-center pb-1 pt-4"', 'className="qwerty-mobile-word-wrap flex flex-col items-center justify-center pb-1 pt-4"')
@@ -720,6 +745,18 @@ fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
 .dict-loading{border-radius:1rem;background:#fff;padding:1.2rem;text-align:center;color:#858ca3}.dict-result-list{display:grid;gap:.8rem}.dict-word-card{display:grid;grid-template-columns:1fr 2.7rem;gap:.4rem .7rem;background:#fff;border-radius:1rem;padding:1rem;box-shadow:0 6px 20px rgba(31,41,55,.06)}.dict-word-card h2{margin:0;font-size:1.45rem;color:#111827;overflow-wrap:anywhere}.dict-word-card p{margin:0}.dict-word-card div p{display:flex;flex-wrap:wrap;gap:.45rem;margin-top:.35rem;color:#6b7280}.dict-word-card button{grid-column:2;grid-row:1;border:0;border-radius:999px;background:#eef6ff;color:#0ea5e9;font-size:1.25rem}.dict-translation{grid-column:1 / -1;color:#374151;line-height:1.55;overflow-wrap:anywhere}.dict-word-card footer{grid-column:1 / -1;display:flex;gap:.55rem;color:#9ca3af;font-size:.85rem}
 @media (max-width:520px){.qwerty-mobile-dict-entry{min-width:4.4rem;height:2.05rem;font-size:.78rem;padding:0 .55rem}.dict-book-grid{grid-template-columns:1fr}.dict-topbar h1{font-size:1.45rem}.dict-topbar p{font-size:.85rem}}
 @media (min-width:900px){.qwerty-dictionary-page{max-width:58rem;margin:0 auto}.dict-book-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+`)
+
+fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
+.qwerty-ipa-page{font-size:18px!important}
+.ipa-title-row h1{font-size:2.45rem!important}.ipa-heading-row h2{font-size:2.25rem!important}.ipa-heading-row p{font-size:1.22rem!important}
+.ipa-row{grid-template-columns:6.2rem minmax(0,1fr)!important;gap:.9rem!important}.ipa-row-label{min-height:5rem!important;font-size:1.25rem!important;border-radius:1.25rem!important}
+.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(4.55rem,1fr))!important;gap:.85rem!important}.ipa-symbol-tile{height:5rem!important;font-size:2.05rem!important;border-radius:1.2rem!important}
+.ipa-topbar h1{font-size:2.05rem!important}.ipa-back{font-size:3.4rem!important}.ipa-hero-card{min-height:14rem!important}.ipa-big{font-size:5.4rem!important}
+.ipa-actions button{width:4.8rem!important;height:4.35rem!important;font-size:2rem!important}.ipa-section-title{font-size:1.65rem!important}.ipa-tips{font-size:1.28rem!important;line-height:1.9!important}
+.ipa-near-card{font-size:3rem!important}.ipa-video-card strong{font-size:4.15rem!important}.ipa-course-card{font-size:1.55rem!important}.ipa-course-card small{font-size:1.12rem!important}
+.ipa-example-card b{font-size:1.75rem!important}.ipa-example-card em{font-size:1.35rem!important}.ipa-example-card button{width:3.15rem!important;height:3.15rem!important;font-size:1.45rem!important}
+@media (max-width:520px){.qwerty-ipa-page{font-size:17px!important}.ipa-title-row h1{font-size:2.1rem!important}.ipa-heading-row h2{font-size:1.95rem!important}.ipa-heading-row p{font-size:1.02rem!important}.ipa-row{grid-template-columns:5.35rem minmax(0,1fr)!important;gap:.68rem!important}.ipa-row-label{min-height:4.45rem!important;font-size:1.08rem!important}.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(3.72rem,1fr))!important;gap:.65rem!important}.ipa-symbol-tile{height:4.45rem!important;font-size:1.75rem!important}.ipa-topbar h1{font-size:1.9rem!important}.ipa-hero-card{min-height:13rem!important}.ipa-big{font-size:4.65rem!important}.ipa-section-title{font-size:1.48rem!important}.ipa-tips{font-size:1.15rem!important}.ipa-example-card b{font-size:1.55rem!important}.ipa-example-card em{font-size:1.22rem!important}}
 `)
 
 buildDictionaryData()
