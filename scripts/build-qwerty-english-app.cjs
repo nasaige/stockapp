@@ -2,6 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { execFileSync } = require('child_process')
 
+// Rebuild marker: visible DictionaryData entry.
 const root = process.cwd()
 const work = path.join(root, '.qwerty-build')
 const qwerty = path.join(work, 'qwerty-learner')
