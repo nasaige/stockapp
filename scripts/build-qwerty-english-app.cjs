@@ -1,4 +1,4 @@
-﻿const fs = require('fs')
+const fs = require('fs')
 const path = require('path')
 const { execFileSync } = require('child_process')
 
@@ -124,7 +124,7 @@ write(path.join(qwerty, 'src/components/Header/index.tsx'), `import logo from '@
 import type { PropsWithChildren } from 'react'
 import type React from 'react'
 const Header: React.FC<PropsWithChildren> = ({ children }) => {
-  return <header className="container z-20 mx-auto w-full px-10 py-6"><div className="flex w-full flex-col items-center justify-between space-y-3 lg:flex-row lg:space-y-0"><div className="qwerty-local-title flex items-center text-2xl font-bold text-indigo-500 no-underline lg:text-4xl"><img src={logo} className="mr-3 h-16 w-16" alt="Qwerty Learner Logo" /><h1>Qwerty Learner</h1></div><nav className="my-card on element flex w-auto content-center items-center justify-end space-x-3 rounded-xl bg-white p-4 transition-colors duration-300 dark:bg-gray-800">{children}</nav></div></header>
+  return <header className="container z-20 mx-auto w-full px-10 py-6"><div className="flex w-full flex-col items-center justify-between space-y-3 lg:flex-row lg:space-y-0"><div className="qwerty-local-title flex items-center text-2xl font-bold text-indigo-500 no-underline lg:text-4xl"><img src={logo} className="mr-3 h-16 w-16" alt="Qwerty Learner Logo" /><h1>Qwerty Learner</h1></div><nav className="my-card on element flex w-auto content-center items-center justify-end space-x-3 rounded-xl bg-white p-4 transition-colors duration-300 dark:bg-gray-800"><a href="#/dictionary" className="qwerty-header-dict-link">词典</a>{children}</nav></div><a href="#/dictionary" className="qwerty-floating-dict-link">词典</a></header>
 }
 export default Header
 `)
@@ -592,14 +592,11 @@ replace('src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.
 replace('src/pages/Typing/components/WordPanel/components/TextAreaHandler/index.tsx', `  const onBlur = useCallback(() => {
     if (!textareaRef.current) return
 
-    if (state.isTyping) {
-      textareaRef.current.focus()
-    }
-  }, [state.isTyping])
-`, `  const onBlur = useCallback(() => {
+    textareaRef.current.focus()
+  }, [])`, `  const onBlur = useCallback(() => {
     if (!textareaRef.current) return
-    if (state.isTyping) textareaRef.current.focus()
-  }, [state.isTyping])
+    if (window.innerWidth > 1024) textareaRef.current.focus()
+  }, [])
 
   const onFocus = useCallback(() => {
     if (!state.isTyping) dispatch({ type: TypingStateActionType.SET_IS_TYPING, payload: true })
@@ -692,6 +689,8 @@ header nav button,header nav a,.qwerty-mobile-keyboard-button,.qwerty-mobile-spe
 fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
 .qwerty-mobile-ipa-entry{display:inline-flex;align-items:center;justify-content:center;min-width:5rem;height:2.25rem;padding:0 .75rem;border-radius:.65rem;color:#fff!important;font-size:.9rem;font-weight:700;text-decoration:none;white-space:nowrap;background:rgb(14 165 233)!important}
 .qwerty-mobile-dict-entry{display:inline-flex;align-items:center;justify-content:center;min-width:5rem;height:2.25rem;padding:0 .75rem;border-radius:.65rem;color:#fff!important;font-size:.9rem;font-weight:700;text-decoration:none;white-space:nowrap;background:rgb(16 185 129)!important}
+.qwerty-header-dict-link{display:inline-flex;align-items:center;justify-content:center;min-width:3.5rem;height:2.25rem;padding:0 .75rem;border-radius:.65rem;background:rgb(16 185 129);color:#fff!important;font-size:.9rem;font-weight:800;text-decoration:none;white-space:nowrap}
+.qwerty-floating-dict-link{position:fixed;right:1rem;bottom:calc(env(safe-area-inset-bottom) + 4.35rem);z-index:90;display:inline-flex;align-items:center;justify-content:center;width:4.2rem;height:4.2rem;border-radius:999px;background:linear-gradient(135deg,#10b981,#22c55e);color:#fff!important;text-decoration:none;font-weight:900;box-shadow:0 12px 30px rgba(16,185,129,.35)}
 .qwerty-ipa-page{min-height:100svh;background:#fff;color:#252a4f;padding:calc(env(safe-area-inset-top) + 1.25rem) clamp(1rem,4vw,2rem) 6.5rem;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow-x:hidden}
 .ipa-home-header,.ipa-title-row,.ipa-heading-row,.ipa-topbar{display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .ipa-user{display:flex;align-items:center;gap:.6rem;font-size:1.1rem;font-weight:800}.ipa-user:before{content:"";width:2.8rem;height:2.8rem;border-radius:999px;background:linear-gradient(135deg,#e8f8ff,#ffe8e8)}
@@ -707,7 +706,7 @@ fs.appendFileSync(path.join(qwerty, 'src/mobile-practice.css'), `
 .ipa-course-card{width:100%;margin-top:1.2rem;padding:1rem;display:flex;align-items:center;gap:.75rem;text-align:left;font-size:1.3rem;font-weight:900;color:#25b9e8;border-radius:1.1rem}.ipa-course-card small{display:block;flex:1;color:#9ba1b4;font-size:.95rem;font-weight:600}.ipa-course-card b{font-size:2rem;color:#c5cad5}
 .ipa-tips{padding-left:1.25rem;color:#8b90a2;font-size:1.05rem;line-height:1.8}.ipa-near-card{width:min(13rem,100%);min-height:7.5rem;border-radius:1.2rem;display:flex;align-items:center;justify-content:space-around;font-size:2.4rem}.ipa-near-card span{font-size:1.4rem}.ipa-combo-note{color:#9ba1b4;margin-top:-.4rem;margin-bottom:1rem}.ipa-example-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.ipa-example-card{position:relative;min-height:8rem;border:1px solid #edf0f6;border-radius:1.25rem;padding:1.1rem;box-shadow:0 4px 12px rgba(37,42,79,.05)}.ipa-example-card b{display:block;font-size:1.45rem;color:#252a4f}.ipa-example-card em{display:block;margin-top:.55rem;color:#9ba1b4;font-size:1.15rem;font-style:normal}.ipa-example-card button{position:absolute;right:.8rem;bottom:.8rem;width:2.7rem;height:2.7rem;border:0;border-radius:999px;background:#f7fbff;color:#29bfe9;box-shadow:0 4px 10px rgba(37,42,79,.08)}
 .ipa-bottom-bar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.75rem 1.2rem calc(env(safe-area-inset-bottom) + .75rem);background:rgba(255,255,255,.97);border-top:1px solid #eef1f5}.ipa-bottom-bar div{min-width:8rem;color:#25b9e8}.ipa-bottom-bar b{font-size:1.35rem;margin-left:.35rem}.ipa-bottom-bar i{display:block;width:7rem;height:.7rem;margin-top:.45rem;border-radius:999px;background:#eef0f5}.ipa-bottom-bar button{border:0;border-radius:1.1rem;background:#43c6ef;color:#fff;font-size:1.25rem;font-weight:900;padding:1rem 1.5rem;box-shadow:0 .25rem 0 #22aede}
-@media (max-width:520px){.qwerty-mobile-ipa-entry{min-width:4.4rem;height:2.05rem;font-size:.78rem;padding:0 .55rem}.qwerty-ipa-page{padding-left:.9rem;padding-right:.9rem}.ipa-title-row{align-items:flex-start}.ipa-title-row h1{font-size:1.75rem}.ipa-title-row div{max-width:9rem}.ipa-row{grid-template-columns:4.8rem minmax(0,1fr);gap:.55rem}.ipa-row-label{min-height:3.7rem;font-size:.95rem}.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(3.15rem,1fr));gap:.55rem}.ipa-symbol-tile{height:3.7rem;font-size:1.35rem}.ipa-heading-row h2{font-size:1.65rem}.ipa-heading-row p{font-size:.9rem}.ipa-example-grid{gap:.75rem}.ipa-example-card{min-height:7.2rem;padding:.9rem}.ipa-video-card{height:10rem}.ipa-big{font-size:3.4rem}}
+@media (max-width:520px){.qwerty-mobile-ipa-entry{min-width:4.4rem;height:2.05rem;font-size:.78rem;padding:0 .55rem}.qwerty-floating-dict-link{right:.85rem;bottom:calc(env(safe-area-inset-bottom) + 4rem);width:3.7rem;height:3.7rem;font-size:.95rem}.qwerty-ipa-page{padding-left:.9rem;padding-right:.9rem}.ipa-title-row{align-items:flex-start}.ipa-title-row h1{font-size:1.75rem}.ipa-title-row div{max-width:9rem}.ipa-row{grid-template-columns:4.8rem minmax(0,1fr);gap:.55rem}.ipa-row-label{min-height:3.7rem;font-size:.95rem}.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(3.15rem,1fr));gap:.55rem}.ipa-symbol-tile{height:3.7rem;font-size:1.35rem}.ipa-heading-row h2{font-size:1.65rem}.ipa-heading-row p{font-size:.9rem}.ipa-example-grid{gap:.75rem}.ipa-example-card{min-height:7.2rem;padding:.9rem}.ipa-video-card{height:10rem}.ipa-big{font-size:3.4rem}}
 @media (min-width:900px){.qwerty-ipa-page{max-width:56rem;margin:0 auto}.ipa-symbols{grid-template-columns:repeat(auto-fill,minmax(4.2rem,1fr))}}
 `)
 
@@ -732,4 +731,3 @@ self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(
 self.addEventListener('fetch', event => { event.respondWith(fetch(event.request)) })
 `)
 console.log(`Published original Qwerty Learner build with ${fs.readdirSync(path.join(target, 'dicts')).length} dictionary files.`)
-
