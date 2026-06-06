@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>音标学习 | English iOS App</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --line: rgba(17, 24, 39, .1);
+      --blue: #2563eb;
+      --green: #059669;
+      --orange: #ea580c;
+      --shadow: 0 16px 40px rgba(15, 23, 42, .09);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(circle at 20% 0%, #e0f2fe 0, transparent 28rem), var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    header { position: sticky; top: 0; z-index: 20; background: rgba(246, 247, 251, .9); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    .bar { max-width: 980px; margin: 0 auto; padding: 12px 16px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    .back { color: var(--blue); text-decoration: none; font-weight: 700; font-size: 15px; }
+    .title { font-weight: 800; font-size: 18px; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 18px 16px 48px; }
+    .hero { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); padding: 20px; display: grid; gap: 14px; }
+    .hero h1 { margin: 0; font-size: clamp(28px, 6vw, 48px); letter-spacing: 0; }
+    .hero p { margin: 0; color: var(--muted); font-size: 16px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0; }
+    button { border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 999px; min-height: 40px; padding: 8px 14px; font: inherit; font-weight: 700; cursor: pointer; }
+    button.active { background: #111827; color: white; border-color: #111827; }
+    .grid { display: grid; gap: 16px; }
+    .section { background: var(--panel); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 8px 24px rgba(15, 23, 42, .06); padding: 16px; }
+    .section h2 { margin: 0 0 12px; font-size: 20px; }
+    .symbols { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
+    .tile { min-height: 78px; border-radius: 18px; border: 1px solid var(--line); background: #f9fafb; display: grid; place-items: center; gap: 2px; padding: 9px; cursor: pointer; }
+    .tile strong { font-size: 30px; line-height: 1; }
+    .tile span { color: var(--muted); font-size: 12px; text-align: center; }
+    .tile.selected { outline: 3px solid rgba(37, 99, 235, .2); border-color: var(--blue); background: #eff6ff; }
+    .detail { margin-top: 16px; background: #111827; color: white; border-radius: 24px; padding: 18px; display: grid; gap: 14px; }
+    .phoneme { font-size: clamp(58px, 18vw, 108px); font-weight: 900; line-height: 1; }
+    .meta { color: rgba(255,255,255,.72); }
+    .examples { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .example { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.13); border-radius: 16px; padding: 12px; display: grid; gap: 4px; }
+    .example b { font-size: 20px; }
+    .example em { color: rgba(255,255,255,.7); font-style: normal; }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .actions button { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.12); color: white; }
+    .note { margin-top: 16px; color: var(--muted); font-size: 13px; }
+    @media (max-width: 520px) { .bar { align-items: flex-start; flex-direction: column; } .symbols { grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); } .tile strong { font-size: 26px; } }
+  </style>
+</head>
+<body>
+  <header><div class="bar"><a class="back" href="../#/">← 返回 English App</a><div class="title">音标学习</div></div></header>
+  <main class="wrap">
+    <section class="hero"><h1>48 个国际音标</h1><p>点选音标查看发音要点、相近音和例词。朗读使用浏览器语音，适合移动端随手练。</p></section>
+    <nav class="tabs" id="tabs"></nav>
+    <section class="grid" id="sections"></section>
+    <p class="note">说明：这是基于公开 IPA 知识和 Qwerty Learner 开源项目思路制作的同类音标学习页，并非复制 KeyKey 闭源代码或素材。</p>
+  </main>
+  <script>
+    const groups = [
+      { id: 'short', label: '短元音', items: [['ɪ','sit','舌位较高，嘴角微展','sit, big, it'], ['e','bed','口型半开，声音短促','bed, pen, yes'], ['æ','cat','嘴张大，舌前低','cat, bad, apple'], ['ʌ','cup','中部短音，放松','cup, bus, love'], ['ɒ','hot','英式圆唇短音','hot, not, box'], ['ʊ','book','短促圆唇','book, good, put'], ['ə','about','弱读央元音','about, teacher, banana']]},
+      { id: 'long', label: '长元音', items: [['iː','see','嘴角展开，拉长','see, tea, meet'], ['ɑː','father','口腔打开，拉长','father, car, park'], ['ɔː','law','圆唇拉长','law, talk, more'], ['uː','blue','圆唇高位拉长','blue, food, moon'], ['ɜː','bird','卷/央元音拉长','bird, work, learn']]},
+      { id: 'diph', label: '双元音', items: [['eɪ','day','从 e 滑向 ɪ','day, name, rain'], ['aɪ','my','从 a 滑向 ɪ','my, like, time'], ['ɔɪ','boy','从 ɔ 滑向 ɪ','boy, choice, toy'], ['aʊ','now','从 a 滑向 ʊ','now, out, house'], ['əʊ','go','英式从 ə 滑向 ʊ','go, home, no'], ['ɪə','near','从 ɪ 滑向 ə','near, hear, idea'], ['eə','hair','从 e 滑向 ə','hair, care, where'], ['ʊə','tour','从 ʊ 滑向 ə','tour, sure, cure']]},
+      { id: 'cons', label: '辅音', items: [['p','pen','清辅音，爆破送气','pen, happy, stop'], ['b','bad','浊辅音，声带振动','bad, baby, job'], ['t','tea','清辅音，舌尖爆破','tea, water, night'], ['d','day','浊辅音，舌尖爆破','day, did, good'], ['k','key','清辅音，舌后爆破','key, cat, back'], ['g','go','浊辅音，舌后爆破','go, get, big'], ['f','fine','上齿轻触下唇','fine, photo, laugh'], ['v','voice','f 的浊化','voice, very, love'], ['s','see','舌尖气流摩擦','see, city, bus'], ['z','zoo','s 的浊化','zoo, busy, has'], ['ʃ','ship','舌面摩擦','ship, sure, nation'], ['ʒ','vision','ʃ 的浊化','vision, measure'], ['θ','think','舌尖轻触齿间','think, three, bath'], ['ð','this','θ 的浊化','this, that, mother'], ['h','he','喉部轻送气','he, hello, behind'], ['tʃ','chair','清塞擦音','chair, teach, match'], ['dʒ','job','浊塞擦音','job, age, judge'], ['m','man','双唇鼻音','man, come, summer'], ['n','no','舌尖鼻音','no, name, ten'], ['ŋ','sing','舌后鼻音','sing, long, thing'], ['l','light','舌尖抵上齿龈','light, love, feel'], ['r','red','舌尖不碰上颚','red, right, very'], ['j','yes','类似 y 的滑音','yes, yellow, you'], ['w','we','圆唇滑音','we, water, quick']]}
+    ];
+    let active = 'short'; let selected = groups[0].items[0]; const tabs = document.getElementById('tabs'); const sections = document.getElementById('sections');
+    function speak(text) { if (!window.speechSynthesis) return; window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = .82; u.pitch = 1.02; window.speechSynthesis.speak(u); }
+    function renderTabs() { tabs.innerHTML = groups.map(g => `<button class="${g.id === active ? 'active' : ''}" data-tab="${g.id}">${g.label}</button>`).join(''); }
+    function render() { renderTabs(); const group = groups.find(g => g.id === active); sections.innerHTML = `<section class="section"><h2>${group.label}</h2><div class="symbols">${group.items.map(item => `<div class="tile ${item[0] === selected[0] ? 'selected' : ''}" data-symbol="${item[0]}"><strong>/${item[0]}/</strong><span>${item[1]}</span></div>`).join('')}</div></section><section class="detail"><div class="phoneme">/${selected[0]}/</div><div class="meta"><b>${selected[1]}</b> · ${selected[2]}</div><div class="examples">${selected[3].split(',').map(x => x.trim()).map(x => `<div class="example"><b>${x}</b><em>${selected[0]}</em></div>`).join('')}</div><div class="actions"><button onclick="speak('${selected[1]}')">读示范词</button><button onclick="speak('${selected[3].replaceAll("'", "")}')">读全部例词</button></div></section>`; }
+    tabs.addEventListener('click', e => { const btn = e.target.closest('button[data-tab]'); if (!btn) return; active = btn.dataset.tab; selected = groups.find(g => g.id === active).items[0]; render(); });
+    sections.addEventListener('click', e => { const tile = e.target.closest('.tile'); if (!tile) return; const group = groups.find(g => g.id === active); selected = group.items.find(item => item[0] === tile.dataset.symbol); render(); speak(selected[1]); });
+    render();
+  </script>
+</body>
+</html>
